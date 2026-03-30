@@ -1,0 +1,785 @@
+{
+  "info": {
+    "_postman_id": "pharma-ecom-api-2026",
+    "name": "Pharma E-Commerce API Collection",
+    "description": "Complete API collection for the Nuxt Pharma E-Commerce application. This collection includes all endpoints for products, categories, authentication, orders, location services, and customer address management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "pharma-ecom"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"01712345678\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user-login",
+              "host": ["{{base_url}}"],
+              "path": ["user-login"]
+            },
+            "description": "Authenticate user with phone/email and password. Returns token and user details on success."
+          },
+          "response": []
+        },
+        {
+          "name": "User Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\",\n    \"username\": \"johndoe\",\n    \"phone\": \"01712345678\",\n    \"dob\": \"1990-01-01\",\n    \"gender\": \"male\",\n    \"address\": \"123 Main Street, Dhaka\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user-register",
+              "host": ["{{base_url}}"],
+              "path": ["user-register"]
+            },
+            "description": "Register a new user account. Returns success message on successful registration."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for user authentication and registration"
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/search?term=aspirin",
+              "host": ["{{base_url}}"],
+              "path": ["products", "search"],
+              "query": [
+                {
+                  "key": "term",
+                  "value": "aspirin",
+                  "description": "Search term for product name"
+                }
+              ]
+            },
+            "description": "Search for products by name or keyword. Returns a list of matching products."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/product-show/:id",
+              "host": ["{{base_url}}"],
+              "path": ["product-show", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Product ID"
+                }
+              ]
+            },
+            "description": "Get detailed information about a specific product including stock, prices, and generic information."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Generic Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/product-generic-wise/:generic_id?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["product-generic-wise", ":generic_id"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "generic_id",
+                  "value": "1",
+                  "description": "Generic ID to fetch alternative products"
+                }
+              ]
+            },
+            "description": "Get all products with the same generic composition (alternative medicines)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Products (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/all-products-paginated?page=1&search=&paginate=20&category_id=&supplier_id=&sort_by=&ecom_category_id=",
+              "host": ["{{base_url}}"],
+              "path": ["all-products-paginated"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term"
+                },
+                {
+                  "key": "paginate",
+                  "value": "20",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Filter by category ID"
+                },
+                {
+                  "key": "supplier_id",
+                  "value": "",
+                  "description": "Filter by supplier ID"
+                },
+                {
+                  "key": "sort_by",
+                  "value": "",
+                  "description": "Sort order (e.g., price_low_to_high, price_high_to_low)"
+                },
+                {
+                  "key": "ecom_category_id",
+                  "value": "",
+                  "description": "Filter by e-commerce category ID"
+                }
+              ]
+            },
+            "description": "Get paginated list of products with multiple filter options including category, supplier, and sorting."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Best Selling Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/best-selling-product?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["best-selling-product"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get list of best selling products with pagination support."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for product management and search"
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All E-Commerce Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/all-ecom-categories",
+              "host": ["{{base_url}}"],
+              "path": ["all-ecom-categories"]
+            },
+            "description": "Get all e-commerce categories including nested subcategories (children_recursive)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/category_all",
+              "host": ["{{base_url}}"],
+              "path": ["category_all"]
+            },
+            "description": "Get all product categories."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for category management"
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "Get All Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/all-supplier",
+              "host": ["{{base_url}}"],
+              "path": ["all-supplier"]
+            },
+            "description": "Get list of all product suppliers/manufacturers."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for supplier information"
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get All Orders (Authenticated User)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/all-order-list-paginated?page=1&search=&paginate=10",
+              "host": ["{{base_url}}"],
+              "path": ["all-order-list-paginated"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term"
+                },
+                {
+                  "key": "paginate",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
+            },
+            "description": "Get paginated list of orders for authenticated user. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Guest Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/all-guest-order-list-paginated?page=1&search=&paginate=10&mobile=01712345678",
+              "host": ["{{base_url}}"],
+              "path": ["all-guest-order-list-paginated"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term"
+                },
+                {
+                  "key": "paginate",
+                  "value": "10",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "mobile",
+                  "value": "01712345678",
+                  "description": "Mobile number to fetch guest orders"
+                }
+              ]
+            },
+            "description": "Get paginated list of orders for guest users by mobile number."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order (Authenticated User)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sale_products\": [\n        {\n            \"product_id\": 1,\n            \"product_name\": \"Paracetamol\",\n            \"price\": 10.50,\n            \"quantity\": 2,\n            \"pack_size_id\": 1,\n            \"pack_size_quantity\": 10,\n            \"total_quantity\": 20,\n            \"total\": 21.00,\n            \"ecom_discount_percentage\": 5,\n            \"ecom_discount_amount\": 1.05,\n            \"ecom_final_selling_price\": 9.97\n        }\n    ],\n    \"sub_total\": 21.00,\n    \"total\": 81.00,\n    \"shipping_cost\": 60,\n    \"billing_address\": {\n        \"full_name\": \"John Doe\",\n        \"mobile\": \"01712345678\",\n        \"address\": \"123 Main Street\",\n        \"country_id\": 1,\n        \"city_id\": 1,\n        \"area_id\": 1,\n        \"note\": \"Please deliver in the morning\",\n        \"customer_address_id\": 1\n    },\n    \"payment_method_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sales",
+              "host": ["{{base_url}}"],
+              "path": ["sales"]
+            },
+            "description": "Create a new order for authenticated user. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Guest Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sale_products\": [\n        {\n            \"product_id\": 1,\n            \"product_name\": \"Paracetamol\",\n            \"price\": 10.50,\n            \"quantity\": 2,\n            \"pack_size_id\": 1,\n            \"pack_size_quantity\": 10,\n            \"total_quantity\": 20,\n            \"total\": 21.00\n        }\n    ],\n    \"sub_total\": 21.00,\n    \"total\": 81.00,\n    \"shipping_cost\": 60,\n    \"billing_address\": {\n        \"full_name\": \"John Doe\",\n        \"mobile\": \"01712345678\",\n        \"address\": \"123 Main Street\",\n        \"country_id\": 1,\n        \"city_id\": 1,\n        \"area_id\": 1,\n        \"note\": \"Please deliver in the morning\"\n    },\n    \"payment_method_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/guest-sale",
+              "host": ["{{base_url}}"],
+              "path": ["guest-sale"]
+            },
+            "description": "Create a new order for guest user (no authentication required)."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Order (Request Suspension)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sale/request-to-suspend/:id",
+              "host": ["{{base_url}}"],
+              "path": ["sale", "request-to-suspend", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Order ID to cancel"
+                }
+              ]
+            },
+            "description": "Request to cancel/suspend an order by its ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Track Order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/order-tracking?sale_code=ORD123456",
+              "host": ["{{base_url}}"],
+              "path": ["order-tracking"],
+              "query": [
+                {
+                  "key": "sale_code",
+                  "value": "ORD123456",
+                  "description": "Order tracking code"
+                }
+              ]
+            },
+            "description": "Track order status using the order/sale code. Returns order status, delivery information, and order history."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for order management"
+    },
+    {
+      "name": "Location Services",
+      "item": [
+        {
+          "name": "Search Countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/country/search?term=bangla",
+              "host": ["{{base_url}}"],
+              "path": ["country", "search"],
+              "query": [
+                {
+                  "key": "term",
+                  "value": "bangla",
+                  "description": "Search term for country name"
+                }
+              ]
+            },
+            "description": "Search for countries by name."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Cities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/city/search?term=dhaka&country_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["city", "search"],
+              "query": [
+                {
+                  "key": "term",
+                  "value": "dhaka",
+                  "description": "Search term for city name"
+                },
+                {
+                  "key": "country_id",
+                  "value": "1",
+                  "description": "Filter by country ID"
+                }
+              ]
+            },
+            "description": "Search for cities by name, optionally filtered by country ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Areas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/area/search?term=mirpur&city_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["area", "search"],
+              "query": [
+                {
+                  "key": "term",
+                  "value": "mirpur",
+                  "description": "Search term for area name"
+                },
+                {
+                  "key": "city_id",
+                  "value": "1",
+                  "description": "Filter by city ID"
+                }
+              ]
+            },
+            "description": "Search for areas/neighborhoods by name, optionally filtered by city ID."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for location-based services (country, city, area)"
+    },
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "Get All Payment Methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/all-payment-methods",
+              "host": ["{{base_url}}"],
+              "path": ["all-payment-methods"]
+            },
+            "description": "Get list of all available payment methods (e.g., Cash on Delivery, Online Payment, etc.)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for payment-related operations"
+    },
+    {
+      "name": "Customer Address Management",
+      "item": [
+        {
+          "name": "Get All Customer Addresses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/get-customer-address",
+              "host": ["{{base_url}}"],
+              "path": ["get-customer-address"]
+            },
+            "description": "Get all saved addresses for the authenticated customer. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Home\",\n    \"address\": \"123 Main Street, Block A\",\n    \"country_id\": 1,\n    \"city_id\": 1,\n    \"area_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customer-address-store",
+              "host": ["{{base_url}}"],
+              "path": ["customer-address-store"]
+            },
+            "description": "Add a new delivery address for the authenticated customer. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Address by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customer-address-edit/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customer-address-edit", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Address ID"
+                }
+              ]
+            },
+            "description": "Get details of a specific address by ID. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Office\",\n    \"address\": \"456 Business Avenue, Floor 5\",\n    \"country_id\": 1,\n    \"city_id\": 1,\n    \"area_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customer-address-update/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customer-address-update", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Address ID to update"
+                }
+              ]
+            },
+            "description": "Update an existing address. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customer-address-delete/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customer-address-delete", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Address ID to delete"
+                }
+              ]
+            },
+            "description": "Delete a saved address. Requires Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Set Default Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customer-address-default-select/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customer-address-default-select", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Address ID to set as default"
+                }
+              ]
+            },
+            "description": "Set a specific address as the default delivery address. Requires Bearer token."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing customer delivery addresses"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://webapps.mis.digital/api/barguna-ecommerce/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_bearer_token_here",
+      "type": "string"
+    },
+    {
+      "key": "img_base_url",
+      "value": "https://ecommerce-pharma.s3.ap-southeast-1.amazonaws.com",
+      "type": "string"
+    }
+  ]
+}
