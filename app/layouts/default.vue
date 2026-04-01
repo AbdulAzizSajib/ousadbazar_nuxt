@@ -128,6 +128,23 @@
                 <span class="text-xl text-gray-900 dark:text-gray-100">
                   ৳ {{ formatNumber(totalPrice || 0) }}
                 </span>
+
+                <!-- Login / Logout Button -->
+                <button
+                  v-if="!isLoggedIn"
+                  @click="showModal"
+                  class="px-5 py-2 bg-[#388072] text-white text-sm font-semibold rounded-lg hover:bg-[#2d6a5a] transition-all duration-300 shadow-md shadow-[#388072]/20 active:scale-95"
+                >
+                  Login
+                </button>
+                <button
+                  v-else
+                  @click="handleLogout($router)"
+                  class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-600 rounded-lg hover:bg-red-50 transition-all duration-200 active:scale-95"
+                >
+                  <Icon icon="solar:logout-2-outline" class="size-4" />
+                  Logout
+                </button>
               </div>
             </div>
 
@@ -545,6 +562,7 @@
                     v-model:value="product.selectedQuantity"
                     placeholder="Select Quantity"
                     size="small"
+                    :popupClassName="'cart-qty-dropdown'"
                     @change="
                       handleQuantityChange(product, product.selectedQuantity)
                     "
@@ -557,15 +575,10 @@
                       :key="i"
                       :value="i * (product?.product_prices?.pack_quantity || 1)"
                     >
+                      {{ "( " + Number(i) + (product?.product_prices?.ecom_pack_name?.name || " X") + " )" }}
                       {{
-                        product?.category?.name.toLowerCase().includes("cap") ||
-                        product?.category?.name.toLowerCase().includes("tab")
-                          ? "(" + Number(i) + " Strip)"
-                          : Number(i) + " X"
-                      }}
-                      {{
-                        product?.category?.name.toLowerCase().includes("cap") ||
-                        product?.category?.name.toLowerCase().includes("tab")
+                        product?.category?.name?.toLowerCase().includes("cap") ||
+                        product?.category?.name?.toLowerCase().includes("tab")
                           ? Number(product?.product_prices?.pack_quantity) *
                             Number(i)
                           : Number(product?.product_prices?.pack_quantity)
@@ -639,197 +652,135 @@
 
   <!-- ...............login modal -->
   <a-modal
-    width="1000px"
-    hight="1000px"
+    width="900px"
     v-model:open="open"
     title=""
     :footer="null"
     @cancel="handleCancel"
+    :bodyStyle="{ padding: 0 }"
+    centered
   >
     <div
-      class="w-full bg-white dark:bg-gray-800 md:p-8 flex flex-col md:flex-row items-center"
+      class="w-full bg-white flex flex-col md:flex-row overflow-hidden"
     >
-      <!-- Image Section -->
-      <div class="w-full md:w-1/2 mb-8 md:mb-0 flex justify-center">
-        <img class="w-[90%] md:w-full" :src="loginMedi" alt="Login Image" />
-      </div>
-
-      <!-- Form Section -->
-      <div class="flex-1">
-        <div class="mb-6 text-start">
-          <h1 class="text-2xl text-[#388072] text-start font-bold mb-2">
-            Login
-          </h1>
-          <p>
-            Login to ousadbazar to make an order, access your orders, special
-            offers, health tips, and more!
+      <!-- Left Image Section -->
+      <div class="hidden md:flex w-1/2 bg-[#f0faf7] flex-col items-center justify-center p-8">
+        <img class="w-[85%] max-w-[320px]" :src="loginMedi" alt="Login Image" />
+        <div class="text-center mt-6">
+          <h3 class="text-lg font-bold text-gray-800">Quick & easy ordering process</h3>
+          <p class="text-sm text-gray-500 mt-2 max-w-[280px] mx-auto">
+            Now you can order your medicine from Ousad Bazar. We provide all the medicines you need.
           </p>
         </div>
-        <form @submit.prevent="handleLogin" class="space-y-6">
-          <div class="space-y-4">
-            <!-- Email -->
-            <div>
-              <p class="my-2">Your Phone number</p>
+        <!-- Carousel Dots -->
+        <div class="flex items-center gap-2 mt-5">
+          <span class="w-6 h-2 rounded-full bg-[#388072]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#388072]/30"></span>
+          <span class="w-2 h-2 rounded-full bg-[#388072]/30"></span>
+        </div>
+      </div>
+
+      <!-- Right Form Section -->
+      <div class="flex-1 p-6 md:p-10">
+        <div class="mb-5">
+          <h1 class="text-2xl text-[#388072] font-bold mb-2">Login</h1>
+          <p class="text-sm text-gray-500">
+            Login to make an order, access your orders, special offers, health tips, and more!
+          </p>
+        </div>
+
+        <form @submit.prevent="otpSent ? handleVerifyOtp() : handleLogin()" class="space-y-5">
+          <!-- Phone Number -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+            <div class="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#388072]/30 focus-within:border-[#388072] transition-all">
+              <div class="flex items-center gap-1.5 px-3 bg-[#388072] text-white text-sm font-medium shrink-0">
+                <span>(+88)</span>
+                <span>BD</span>
+                <Icon icon="mdi:chevron-down" class="size-4" />
+              </div>
               <input
                 v-model="phone"
                 type="text"
-                name="text"
-                placeholder="Your phone number"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-green-200"
+                maxlength="11"
+                :disabled="otpSent"
+                placeholder="01XXXXXXXXX"
+                class="flex-1 px-4 py-3 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
+                :class="{ 'opacity-60 cursor-not-allowed': otpSent }"
+                @input="phone = $event.target.value.replace(/\D/g, '').slice(0, 11)"
               />
             </div>
-
-            <!-- Password -->
-            <div>
-              <p class="my-2">Password</p>
-              <input
-                v-model="password"
-                type="password"
-                name="password"
-                placeholder="Password"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-green-200"
-              />
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <button
-              type="submit"
-              class="w-full px-4 py-2 font-semibold text-white bg-[#388072] rounded-lg transition-all flex justify-center gap-2"
-            >
-              <span>{{ isLoading ? "Processing ..." : "Login" }}</span>
-              <Icon
-                v-if="isLoading"
-                class="size-5 animate-spin"
-                icon="icon-park-outline:loading"
-              />
-            </button>
-
-            <p
-              class="items-center text-center px-1 capitalize"
-              @click="registrationModal"
-            >
-              Don't have an account yet?
-              <span class="hover:underline text-green-700 text-base font-bold"
-                >Register</span
-              >
+            <!-- Change number link -->
+            <p v-if="otpSent" class="text-xs text-[#388072] mt-1 cursor-pointer hover:underline" @click="resetOtp">
+              Change number
             </p>
           </div>
+
+          <!-- OTP Input (appears after sending phone) -->
+          <transition
+            enter-active-class="transition duration-300 ease-out"
+            enter-from-class="opacity-0 -translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+          >
+            <div v-if="otpSent">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
+              <p class="text-xs text-gray-400 mb-3">A 6-digit code has been sent to +88{{ phone }}</p>
+              <div class="flex justify-between gap-2">
+                <input
+                  v-for="(_, i) in 6"
+                  :key="i"
+                  :ref="el => { if (el) otpRefs[i] = el }"
+                  type="text"
+                  maxlength="1"
+                  :value="otpDigits[i]"
+                  @input="handleOtpInput($event, i)"
+                  @keydown.backspace="handleOtpBackspace($event, i)"
+                  @paste="handleOtpPaste($event)"
+                  class="w-12 h-12 text-center text-lg font-bold border border-gray-300 rounded-lg bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#388072]/30 focus:border-[#388072] transition-all"
+                />
+              </div>
+              <!-- Resend OTP -->
+              <div class="flex items-center justify-between mt-3">
+                <p class="text-xs text-gray-400">Didn't receive the code?</p>
+                <button
+                  type="button"
+                  :disabled="resendTimer > 0"
+                  @click="handleLogin"
+                  class="text-xs font-semibold transition-colors"
+                  :class="resendTimer > 0 ? 'text-gray-300 cursor-not-allowed' : 'text-[#388072] hover:underline'"
+                >
+                  {{ resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP' }}
+                </button>
+              </div>
+            </div>
+          </transition>
+
+          <!-- Send / Verify Button -->
+          <button
+            type="submit"
+            class="w-full py-3 font-semibold text-white bg-[#388072] rounded-lg hover:bg-[#2d6a5a] transition-all duration-300 flex justify-center items-center gap-2 shadow-md shadow-[#388072]/20"
+          >
+            <span>{{ isLoading ? "Processing ..." : (otpSent ? "Verify OTP" : "Send") }}</span>
+            <Icon
+              v-if="isLoading"
+              class="size-5 animate-spin"
+              icon="icon-park-outline:loading"
+            />
+          </button>
+
+          <!-- Terms -->
+          <p class="text-xs text-center text-gray-400 leading-relaxed">
+            By continuing you agree to
+            <span class="text-[#388072] font-medium cursor-pointer hover:underline">Terms & Conditions</span>,
+            <span class="text-[#388072] font-medium cursor-pointer hover:underline">Privacy Policy</span>
+            &
+            <span class="text-[#388072] font-medium cursor-pointer hover:underline">Refund-Return Policy</span>
+          </p>
         </form>
       </div>
     </div>
   </a-modal>
 
-  <!-- registration modal -->
-  <a-modal
-    width="1000px"
-    hight="1000px"
-    v-model:open="registration_open"
-    title=""
-    :footer="null"
-  >
-    <div
-      class="w-full bg-white dark:bg-gray-800 md:p-8 flex flex-col md:flex-row items-center"
-    >
-      <!-- Image Section -->
-      <div class="w-full md:w-1/2 mb-8 md:mb-0 flex justify-center">
-        <img class="w-[90%] md:w-full" :src="loginMedi" alt="Login Image" />
-      </div>
-
-      <!-- Form Section -->
-      <div class="flex-1">
-        <div class="w-full">
-          <div class="mb-6 text-start ml-10">
-            <h2 class="text-2xl font-bold text-start text-[#388072]">
-              Create an Account
-            </h2>
-            <p>
-              Create an Account to ousadbazar to make an order, access your
-              orders, special offers, health tips, and more!
-            </p>
-          </div>
-          <form
-            @submit.prevent="handleRegister"
-            class="max-w-sm mx-auto p-2 bg-white space-y-6"
-          >
-            <div class="space-y-2">
-              <!-- Name -->
-              <div>
-                <label class="block mb-1 font-semibold text-gray-700"
-                  >Name <span class="text-red-500">*</span></label
-                >
-                <input
-                  v-model="formData.name"
-                  type="text"
-                  name="name"
-                  placeholder="Enter your name"
-                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition"
-                />
-              </div>
-
-              <!-- Phone -->
-              <div>
-                <label class="block mb-1 font-semibold text-gray-700"
-                  >Phone <span class="text-red-500">*</span></label
-                >
-                <input
-                  @input="onlyNumber"
-                  v-model="formData.phone"
-                  type="tel"
-                  placeholder="Your phone number"
-                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition"
-                  :class="{
-                    'border-red-400': !isValidMobile && formData.phone,
-                  }"
-                />
-                <p
-                  v-if="!isValidMobile && formData.phone"
-                  class="text-red-500 text-xs mt-1"
-                >
-                  {{ validationError }}
-                </p>
-              </div>
-              <!-- Password -->
-              <div>
-                <label class="block mb-1 font-semibold text-gray-700"
-                  >Password <span class="text-red-500">*</span></label
-                >
-                <input
-                  v-model="formData.password"
-                  type="password"
-                  placeholder="Create a password"
-                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition"
-                />
-              </div>
-            </div>
-
-            <!-- Button -->
-            <div class="space-y-4">
-              <button
-                :disabled="isLoading"
-                type="submit"
-                class="w-full px-4 py-2 font-semibold text-white bg-[#388072] rounded-lg transition-all flex justify-center gap-2"
-              >
-                <span>{{ isLoading ? "Processing ..." : "Register" }}</span>
-                <Icon
-                  v-if="isLoading"
-                  class="size-5 animate-spin"
-                  icon="icon-park-outline:loading"
-                />
-              </button>
-
-              <p @click="showModal" class="text-base text-center text-gray-600">
-                Have an account?
-                <span class="text-[#388072] font-medium hover:underline">
-                  Login
-                </span>
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </a-modal>
 
   <a-back-top />
 </template>
@@ -858,7 +809,10 @@ const mobileSearchInput = ref(null);
 
 const handleCancel = () => {
   phone.value = "";
-  password.value = "";
+  otpSent.value = false;
+  otpDigits.value = ["", "", "", "", "", ""];
+  if (resendInterval) clearInterval(resendInterval);
+  resendTimer.value = 0;
 };
 
 const handleLogout = (router) => {
@@ -962,176 +916,124 @@ const checkoutHandler = (e) => {
   }
 };
 
-//  registration modal...................
-const registration_open = ref(false);
-const registrationModal = () => {
-  registration_open.value = true;
-  open.value = false;
-};
-
-const formData = ref({
-  name: "",
-  email: "",
-  password: "",
-  username: "",
-  phone: "",
-  dob: "",
-  gender: "",
-  address: "",
-});
-
-const validationError = ref("");
-
-// Enhanced validation function
-const validateMobile = (value) => {
-  // const cleanedValue = value.trim();
-  const cleanedValue = String(value ?? "").trim();
-
-  if (!cleanedValue) {
-    return "Mobile number is required";
-  }
-
-  if (!cleanedValue.startsWith("01")) {
-    return "Mobile number must start with 01";
-  }
-
-  if (!/^\d+$/.test(cleanedValue)) {
-    return "Mobile number must contain only digits";
-  }
-
-  if (cleanedValue.length > 11) {
-    return "Mobile number cannot exceed 11 digits";
-  }
-
-  if (cleanedValue.length < 11) {
-    return "Mobile number must be 11 digits";
-  }
-
-  return "";
-};
-
-const isValidMobile = computed(() => {
-  validationError.value = validateMobile(formData.value.phone);
-  return validationError.value === "";
-});
-
-const onlyNumber = (e) => {
-  let inputValue = e.target.value.replace(/\D/g, ""); // remove non-digits
-  if (inputValue.length > 11) {
-    inputValue = inputValue.slice(0, 11); // limit to 11 digits
-  }
-  formData.value.phone = inputValue; // sync with v-model
-};
-
-const handleRegister = async () => {
-  try {
-    if (!formData.value.name) {
-      showNotification("warning", "Name is required");
-      return;
-    }
-
-    if (!formData.value.password) {
-      showNotification("warning", "Password is required");
-      return;
-    }
-    if (!formData.value.phone) {
-      showNotification("warning", "Phone Number is required");
-      return;
-    }
-    isLoading.value = true;
-    const res = await axios.post(
-      `${apiBasePharma}/user-register`,
-      formData.value,
-    );
-
-    // Success flow
-    if (res?.data?.status === "success") {
-      showNotification("success", res.data.message);
-      isLoading.value = false;
-
-      setTimeout(() => {
-        // router.push({ name: "login" });
-        formData.value = "";
-        registration_open.value = false;
-        open.value = true;
-      }, 1000);
-    } else {
-      showNotification("error", "Registration Failed");
-    }
-  } catch (error) {
-    isLoading.value = false;
-
-    if (error.response && error.response.data && error.response.data.message) {
-      const messages = error.response.data.message;
-
-      // Loop through each field (email, password, etc.)
-      for (const field in messages) {
-        if (Array.isArray(messages[field])) {
-          messages[field].forEach((msg) => {
-            showNotification("error", msg);
-          });
-        } else {
-          showNotification("error", messages[field]);
-        }
-      }
-    } else {
-      showNotification("error", "Something went wrong");
-    }
-  }
-};
-
 // modal.............................
 
 const open = ref(false);
 const showModal = () => {
   open.value = true;
-  registration_open.value = false;
 };
 
 const router = useRouter();
 const isLoading = ref(false);
 
 const phone = ref("");
-const password = ref("");
+const otpSent = ref(false);
+const otpDigits = ref(["", "", "", "", "", ""]);
+const otpRefs = ref([]);
+const resendTimer = ref(0);
+let resendInterval = null;
 
+const startResendTimer = () => {
+  resendTimer.value = 60;
+  if (resendInterval) clearInterval(resendInterval);
+  resendInterval = setInterval(() => {
+    resendTimer.value--;
+    if (resendTimer.value <= 0) clearInterval(resendInterval);
+  }, 1000);
+};
+
+const handleOtpInput = (e, index) => {
+  const val = e.target.value.replace(/\D/g, "");
+  otpDigits.value[index] = val.slice(0, 1);
+  e.target.value = otpDigits.value[index];
+  if (val && index < 5) {
+    otpRefs.value[index + 1]?.focus();
+  }
+};
+
+const handleOtpBackspace = (e, index) => {
+  if (!otpDigits.value[index] && index > 0) {
+    otpRefs.value[index - 1]?.focus();
+  }
+};
+
+const handleOtpPaste = (e) => {
+  e.preventDefault();
+  const paste = (e.clipboardData?.getData("text") || "").replace(/\D/g, "").slice(0, 6);
+  paste.split("").forEach((char, i) => {
+    otpDigits.value[i] = char;
+  });
+  const nextIndex = Math.min(paste.length, 5);
+  otpRefs.value[nextIndex]?.focus();
+};
+
+const resetOtp = () => {
+  otpSent.value = false;
+  otpDigits.value = ["", "", "", "", "", ""];
+  if (resendInterval) clearInterval(resendInterval);
+  resendTimer.value = 0;
+};
+
+// Step 1: Send phone number to get OTP
 const handleLogin = async () => {
   if (!phone.value) {
-    return showNotification("warning", "phone required");
-  }
-  if (!password.value) {
-    return showNotification("warning", "password required");
+    return showNotification("warning", "Phone number required");
   }
   isLoading.value = true;
   try {
-    const res = await axios.post(`${apiBasePharma}/user-login`, {
-      phone: phone.value,
-      password: password.value,
+    const res = await axios.post(`${apiBasePharma}/send-otp`, {
+      phone: `88${phone.value}`,
+    });
+
+    isLoading.value = false;
+    if (res?.data?.message) {
+      showNotification("success", res?.data?.message);
+      otpSent.value = true;
+      startResendTimer();
+    } else {
+      showNotification("error", "Failed to send OTP");
+    }
+  } catch (error) {
+    isLoading.value = false;
+    if (error.response) {
+      showNotification("error", error.response.data.message || "An unexpected error occurred");
+    } else {
+      showNotification("error", "Network or server error");
+    }
+  }
+};
+
+// Step 2: Verify OTP
+const handleVerifyOtp = async () => {
+  const otp = otpDigits.value.join("");
+  if (otp.length < 6) {
+    return showNotification("warning", "Please enter the full 6-digit OTP");
+  }
+  isLoading.value = true;
+  try {
+    const res = await axios.post(`${apiBasePharma}/verify-otp`, {
+      phone: `88${phone.value}`,
+      otp: otp,
     });
 
     isLoading.value = false;
     if (res?.data?.status === "success") {
       localStorage.setItem("token", res?.data?.token);
-      localStorage.setItem("user", JSON.stringify(res?.data?.user));
       showNotification("success", res?.data?.message);
       open.value = false;
       phone.value = "";
-      password.value = "";
+      otpSent.value = false;
+      otpDigits.value = ["", "", "", "", "", ""];
       isLoggedIn.value = res?.data?.token;
     } else if (res?.data?.status === "error") {
       showNotification("error", res?.data?.message);
-      isLoading.value = false;
     } else {
       showNotification("error", "Unexpected response format");
-      isLoading.value = false;
     }
   } catch (error) {
     isLoading.value = false;
-
     if (error.response) {
-      showNotification(
-        "error",
-        error.response.data.message || "An unexpected error occurred",
-      );
+      showNotification("error", error.response.data.message || "An unexpected error occurred");
     } else {
       showNotification("error", "Network or server error");
     }
@@ -1200,6 +1102,10 @@ const isShopRoute = route.path === "/shop";
 
 .rc-virtual-list-holder {
   max-height: 450px !important;
+}
+
+.cart-qty-dropdown .rc-virtual-list-holder {
+  max-height: 200px !important;
 }
 
 /* Navbar search bar styling */

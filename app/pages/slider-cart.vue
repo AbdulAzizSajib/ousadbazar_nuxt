@@ -108,6 +108,14 @@
                           :src="`${imgBasePharma}/${product?.product_images[0]?.path}`"
                           :fallback="default_img"
                         />
+                        <a-image
+                          v-else-if="product?.path"
+                          :width="80"
+                          :height="80"
+                          class="w-full h-full object-cover"
+                          :src="`${imgBasePharma}/${product?.path}`"
+                          :fallback="default_img"
+                        />
                         <div
                           v-else
                           class="w-full h-full flex items-center justify-center"

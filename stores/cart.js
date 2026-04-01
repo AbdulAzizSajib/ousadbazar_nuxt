@@ -1,6 +1,5 @@
 import { showNotification } from "@/util/notification";
 import { defineStore } from "pinia";
-import { message } from "ant-design-vue";
 export const useCartStore = defineStore("cartStore", {
   state: () => ({
     isLoading: false,
@@ -26,6 +25,21 @@ export const useCartStore = defineStore("cartStore", {
     },
 
     getCart(product, quantity, singleQty) {
+      // Check if user is logged in
+      const token = localStorage.getItem("token");
+      if (!token) {
+        showNotification("warning", "Please login first to add items to cart");
+        return false;
+      }
+
+      // Normalize product_images so cart always has image data
+      if (
+        (!product?.product_images || product.product_images.length === 0) &&
+        product?.path
+      ) {
+        product = { ...product, product_images: [{ path: product.path }] };
+      }
+
       const price = Number(
         product?.product_prices?.ecom_final_selling_price || 0
       );
@@ -40,7 +54,7 @@ export const useCartStore = defineStore("cartStore", {
         (item) => item?.id == product?.id
       );
       if (index != -1) {
-        message.info(`${product?.name} updated to cart!`, 1);
+        showNotification("info", `${product?.name} updated to cart!`);
         this.cartProduct[index].quantity = quantity;
         this.cartProduct[index].singleQty = singleQty;
         this.cartProduct[index].total_quantity = quantity;
@@ -65,7 +79,7 @@ export const useCartStore = defineStore("cartStore", {
           ...this.cartProduct,
         ];
 
-        message.success(`${product?.name} added to cart!`, 2);
+        showNotification("success", `${product?.name} added to cart!`);
       }
 
       this.calculateTotal();
@@ -74,7 +88,7 @@ export const useCartStore = defineStore("cartStore", {
     removeProductFromCart(index) {
       this.cartProduct.splice(index, 1);
       this.calculateTotal();
-      message.success(`Item removed from cart!`, 2);
+      showNotification("success", "Item removed from cart!");
     },
   },
   persist: {

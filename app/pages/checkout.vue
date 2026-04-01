@@ -89,44 +89,15 @@
           </h2>
 
           <div class="border border-gray-200 rounded overflow-hidden">
-            <label
-              class="flex items-center justify-between px-4 py-3 cursor-pointer border-b border-gray-200"
-              :class="{
-                'bg-orange-50': ShippingCost === 120,
-              }"
+            <div
+              class="flex items-center justify-between px-4 py-3 bg-orange-50"
             >
               <div class="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="shipping"
-                  :value="120"
-                  v-model="ShippingCost"
-                  @change="handleShippingCost"
-                  class="w-4 h-4 text-orange-500 accent-orange-500"
-                />
-                <span class="text-sm text-gray-800">ঢাকা সিটির বাহিরে:</span>
+                <Icon icon="mdi:truck-delivery" class="w-5 h-5 text-orange-500" />
+                <span class="text-sm text-gray-800">ডেলিভারি চার্জ:</span>
               </div>
-              <span class="text-sm font-semibold text-gray-900">৳ 120.00</span>
-            </label>
-            <label
-              class="flex items-center justify-between px-4 py-3 cursor-pointer"
-              :class="{
-                'bg-orange-50': ShippingCost === 70,
-              }"
-            >
-              <div class="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="shipping"
-                  :value="70"
-                  v-model="ShippingCost"
-                  @change="handleShippingCost"
-                  class="w-4 h-4 text-orange-500 accent-orange-500"
-                />
-                <span class="text-sm text-gray-800">ঢাকা সিটির মধ্যে:</span>
-              </div>
-              <span class="text-sm font-semibold text-gray-900">৳ 70.00</span>
-            </label>
+              <span class="text-sm font-semibold text-gray-900">৳ 60.00</span>
+            </div>
           </div>
         </section>
 
@@ -336,7 +307,7 @@ const isOrderloading = ref(false);
 import { showNotification } from "@/util/notification";
 import { Icon } from "@iconify/vue";
 
-const ShippingCost = ref(120);
+const ShippingCost = ref(60);
 
 const address = ref({
   full_name: storedUser?.name || "",
@@ -400,11 +371,6 @@ const onlyNumber = (e) => {
   address.value.mobile = inputValue;
 };
 
-const handleShippingCost = () => {
-  formData.value.shipping_cost = ShippingCost.value;
-  formData.value.total = totalPrice.value + ShippingCost.value;
-  cartStore.calculateTotal();
-};
 
 const token = ref();
 const open = ref(false);
