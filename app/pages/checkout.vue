@@ -23,12 +23,12 @@
             </div>
 
             <!-- Country -->
-            <div>
+            <!-- <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Country / Region <span class="text-red-500">*</span>
               </label>
               <p class="font-semibold text-gray-900">Bangladesh</p>
-            </div>
+            </div> -->
 
             <!-- Address -->
             <div>
@@ -78,25 +78,6 @@
                 placeholder="অর্ডার নোট..."
                 v-model="address.note"
               />
-            </div>
-          </div>
-        </section>
-
-        <!-- Shipping -->
-        <section class="mb-8">
-          <h2 class="text-xl font-bold text-gray-900 mb-5 border-b pb-3">
-            Shipping
-          </h2>
-
-          <div class="border border-gray-200 rounded overflow-hidden">
-            <div
-              class="flex items-center justify-between px-4 py-3 bg-orange-50"
-            >
-              <div class="flex items-center gap-3">
-                <Icon icon="mdi:truck-delivery" class="w-5 h-5 text-orange-500" />
-                <span class="text-sm text-gray-800">ডেলিভারি চার্জ:</span>
-              </div>
-              <span class="text-sm font-semibold text-gray-900">৳ 60.00</span>
             </div>
           </div>
         </section>
@@ -165,16 +146,6 @@
               </span>
             </div>
 
-            <!-- Shipping -->
-            <div
-              class="flex justify-between items-center px-4 py-3 border-b border-dashed border-gray-300"
-            >
-              <span class="text-sm text-gray-600">Shipping</span>
-              <span class="text-sm font-semibold text-gray-900">
-                ৳ {{ Number(ShippingCost || 0).toFixed(2) }}
-              </span>
-            </div>
-
             <!-- Total -->
             <div class="flex justify-between items-center px-4 py-3 bg-gray-50">
               <span class="text-base font-bold text-gray-900">Total</span>
@@ -225,7 +196,13 @@
         <!-- Place Order Button -->
         <button
           type="button"
-          class="w-full bg-[#388072] text-white font-bold py-4 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center gap-2 text-base active:scale-[0.98]"
+          :disabled="isCartEmpty"
+          class="w-full text-white font-bold py-4 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center gap-2 text-base active:scale-[0.98]"
+          :class="
+            isCartEmpty
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-[#388072] cursor-pointer'
+          "
           @click="submit_Order"
         >
           <Icon icon="mdi:lock" class="w-5 h-5" />
@@ -293,7 +270,7 @@ import default_img from "@/assets/images/Banner/default.jpg";
 
 import axios from "axios";
 import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const cartStore = useCartStore();
@@ -307,11 +284,14 @@ const isOrderloading = ref(false);
 import { showNotification } from "@/util/notification";
 import { Icon } from "@iconify/vue";
 
-const ShippingCost = ref(60);
+const ShippingCost = ref(0);
 
 const address = ref({
   full_name: storedUser?.name || "",
-  mobile: storedUser?.phone || "",
+  mobile:
+    storedUser?.phone ||
+    localStorage.getItem("mobile")?.replace(/^88/, "") ||
+    "",
   address: "",
   country_id: 1,
   city_id: 1,
@@ -363,6 +343,10 @@ const isValidMobile = computed(() => {
   return validationError.value === "";
 });
 
+const isCartEmpty = computed(() => {
+  return cartProduct.value.length === 0;
+});
+
 const onlyNumber = (e) => {
   let inputValue = e.target.value.replace(/\D/g, "");
   if (inputValue.length > 11) {
@@ -370,7 +354,6 @@ const onlyNumber = (e) => {
   }
   address.value.mobile = inputValue;
 };
-
 
 const token = ref();
 const open = ref(false);
@@ -414,6 +397,7 @@ const submit_Order = async () => {
       })),
       sub_total: Number(totalPrice.value || 0),
       total: Number(totalPrice.value || 0) + Number(ShippingCost.value || 0),
+      phone: `88${address.value.mobile}`,
       shipping_cost: Number(ShippingCost.value || 0),
       billing_address: {
         full_name: address.value.full_name,
@@ -438,8 +422,8 @@ const submit_Order = async () => {
 
     if (res.data?.message) {
       sale_code.value = res.data?.saleCode || res.data?.sale_code || "";
-      showModal();
       cartStore.$reset();
+      router.push("/");
     }
   } catch (error) {
     console.log(error);

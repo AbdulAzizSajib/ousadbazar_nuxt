@@ -82,7 +82,9 @@
                     icon="mingcute:search-line"
                     class="text-gray-400 size-5 group-hover:text-[#388072] transition-colors"
                   />
-                  <span class="ml-3 text-gray-400 text-sm">Search products...</span>
+                  <span class="ml-3 text-gray-400 text-sm"
+                    >Search products...</span
+                  >
                 </div>
               </div>
               <!-- Navigation Links -->
@@ -328,7 +330,18 @@
               </div>
             </nuxt-link>
             <!-- <h2>Orders</h2> -->
-            <nuxt-link to="/order-tracking" active-class="active-link">
+            <nuxt-link v-if="isLoggedIn" to="/order-history" active-class="active-link">
+              <div
+                class="relative group px-4 py-2 rounded-full transition-all duration-300 hover:bg-[#388072]/10"
+              >
+                <span
+                  class="text-gray-700 dark:text-gray-200 font-semibold text-[15px] tracking-wide transition-colors duration-200 group-hover:text-[#388072]"
+                >
+                  Order History
+                </span>
+              </div>
+            </nuxt-link>
+            <nuxt-link v-if="isLoggedIn" to="/order-tracking" active-class="active-link">
               <div
                 class="relative group px-4 py-2 rounded-full transition-all duration-300 hover:bg-[#388072]/10"
               >
@@ -493,7 +506,7 @@
                     >
                       {{ product?.name }}
                     </h3>
-                    <p
+                    <!-- <p
                       class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-1.5 rounded-lg text-[11px] font-semibold z-10 uppercase text-center w-1/3"
                       v-if="
                         product?.product_prices?.selling_price !== null &&
@@ -508,13 +521,13 @@
                           product?.product_prices?.ecom_discount_percentage,
                         ).toFixed(0)
                       }}% off
-                    </p>
+                    </p> -->
                     <p class="text-xs text-gray-500 mt-2">
                       Stock:{{ calculateStock(product) }}
                     </p>
 
                     <div class="flex items-center gap-2">
-                      <p
+                      <!-- <p
                         class="text-base sm:text-lg font-semibold text-gray-600 line-through"
                       >
                         ৳{{
@@ -525,7 +538,7 @@
                             ),
                           )
                         }}
-                      </p>
+                      </p> -->
                       <p
                         class="text-base sm:text-lg font-semibold text-[#388072]"
                       >
@@ -575,9 +588,17 @@
                       :key="i"
                       :value="i * (product?.product_prices?.pack_quantity || 1)"
                     >
-                      {{ "( " + Number(i) + (product?.product_prices?.ecom_pack_name?.name || " X") + " )" }}
                       {{
-                        product?.category?.name?.toLowerCase().includes("cap") ||
+                        "( " +
+                        Number(i) +
+                        (product?.product_prices?.ecom_pack_name?.name ||
+                          " X") +
+                        " )"
+                      }}
+                      {{
+                        product?.category?.name
+                          ?.toLowerCase()
+                          .includes("cap") ||
                         product?.category?.name?.toLowerCase().includes("tab")
                           ? Number(product?.product_prices?.pack_quantity) *
                             Number(i)
@@ -660,16 +681,19 @@
     :bodyStyle="{ padding: 0 }"
     centered
   >
-    <div
-      class="w-full bg-white flex flex-col md:flex-row overflow-hidden"
-    >
+    <div class="w-full bg-white flex flex-col md:flex-row overflow-hidden">
       <!-- Left Image Section -->
-      <div class="hidden md:flex w-1/2 bg-[#f0faf7] flex-col items-center justify-center p-8">
+      <div
+        class="hidden md:flex w-1/2 bg-[#f0faf7] flex-col items-center justify-center p-8"
+      >
         <img class="w-[85%] max-w-[320px]" :src="loginMedi" alt="Login Image" />
         <div class="text-center mt-6">
-          <h3 class="text-lg font-bold text-gray-800">Quick & easy ordering process</h3>
+          <h3 class="text-lg font-bold text-gray-800">
+            Quick & easy ordering process
+          </h3>
           <p class="text-sm text-gray-500 mt-2 max-w-[280px] mx-auto">
-            Now you can order your medicine from Ousad Bazar. We provide all the medicines you need.
+            Now you can order your medicine from Ousad Bazar. We provide all the
+            medicines you need.
           </p>
         </div>
         <!-- Carousel Dots -->
@@ -685,16 +709,26 @@
         <div class="mb-5">
           <h1 class="text-2xl text-[#388072] font-bold mb-2">Login</h1>
           <p class="text-sm text-gray-500">
-            Login to make an order, access your orders, special offers, health tips, and more!
+            Login to make an order, access your orders, special offers, health
+            tips, and more!
           </p>
         </div>
 
-        <form @submit.prevent="otpSent ? handleVerifyOtp() : handleLogin()" class="space-y-5">
+        <form
+          @submit.prevent="otpSent ? handleVerifyOtp() : handleLogin()"
+          class="space-y-5"
+        >
           <!-- Phone Number -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-            <div class="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#388072]/30 focus-within:border-[#388072] transition-all">
-              <div class="flex items-center gap-1.5 px-3 bg-[#388072] text-white text-sm font-medium shrink-0">
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >Phone Number</label
+            >
+            <div
+              class="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#388072]/30 focus-within:border-[#388072] transition-all"
+            >
+              <div
+                class="flex items-center gap-1.5 px-3 bg-[#388072] text-white text-sm font-medium shrink-0"
+              >
                 <span>(+88)</span>
                 <span>BD</span>
                 <Icon icon="mdi:chevron-down" class="size-4" />
@@ -707,11 +741,17 @@
                 placeholder="01XXXXXXXXX"
                 class="flex-1 px-4 py-3 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
                 :class="{ 'opacity-60 cursor-not-allowed': otpSent }"
-                @input="phone = $event.target.value.replace(/\D/g, '').slice(0, 11)"
+                @input="
+                  phone = $event.target.value.replace(/\D/g, '').slice(0, 11)
+                "
               />
             </div>
             <!-- Change number link -->
-            <p v-if="otpSent" class="text-xs text-[#388072] mt-1 cursor-pointer hover:underline" @click="resetOtp">
+            <p
+              v-if="otpSent"
+              class="text-xs text-[#388072] mt-1 cursor-pointer hover:underline"
+              @click="resetOtp"
+            >
               Change number
             </p>
           </div>
@@ -723,13 +763,21 @@
             enter-to-class="opacity-100 translate-y-0"
           >
             <div v-if="otpSent">
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
-              <p class="text-xs text-gray-400 mb-3">A 6-digit code has been sent to +88{{ phone }}</p>
+              <label class="block text-sm font-semibold text-gray-700 mb-2"
+                >Enter OTP</label
+              >
+              <p class="text-xs text-gray-400 mb-3">
+                A 6-digit code has been sent to +88{{ phone }}
+              </p>
               <div class="flex justify-between gap-2">
                 <input
                   v-for="(_, i) in 6"
                   :key="i"
-                  :ref="el => { if (el) otpRefs[i] = el }"
+                  :ref="
+                    (el) => {
+                      if (el) otpRefs[i] = el;
+                    }
+                  "
                   type="text"
                   maxlength="1"
                   :value="otpDigits[i]"
@@ -747,9 +795,15 @@
                   :disabled="resendTimer > 0"
                   @click="handleLogin"
                   class="text-xs font-semibold transition-colors"
-                  :class="resendTimer > 0 ? 'text-gray-300 cursor-not-allowed' : 'text-[#388072] hover:underline'"
+                  :class="
+                    resendTimer > 0
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-[#388072] hover:underline'
+                  "
                 >
-                  {{ resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP' }}
+                  {{
+                    resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"
+                  }}
                 </button>
               </div>
             </div>
@@ -760,7 +814,9 @@
             type="submit"
             class="w-full py-3 font-semibold text-white bg-[#388072] rounded-lg hover:bg-[#2d6a5a] transition-all duration-300 flex justify-center items-center gap-2 shadow-md shadow-[#388072]/20"
           >
-            <span>{{ isLoading ? "Processing ..." : (otpSent ? "Verify OTP" : "Send") }}</span>
+            <span>{{
+              isLoading ? "Processing ..." : otpSent ? "Verify OTP" : "Send"
+            }}</span>
             <Icon
               v-if="isLoading"
               class="size-5 animate-spin"
@@ -771,16 +827,24 @@
           <!-- Terms -->
           <p class="text-xs text-center text-gray-400 leading-relaxed">
             By continuing you agree to
-            <span class="text-[#388072] font-medium cursor-pointer hover:underline">Terms & Conditions</span>,
-            <span class="text-[#388072] font-medium cursor-pointer hover:underline">Privacy Policy</span>
+            <span
+              class="text-[#388072] font-medium cursor-pointer hover:underline"
+              >Terms & Conditions</span
+            >,
+            <span
+              class="text-[#388072] font-medium cursor-pointer hover:underline"
+              >Privacy Policy</span
+            >
             &
-            <span class="text-[#388072] font-medium cursor-pointer hover:underline">Refund-Return Policy</span>
+            <span
+              class="text-[#388072] font-medium cursor-pointer hover:underline"
+              >Refund-Return Policy</span
+            >
           </p>
         </form>
       </div>
     </div>
   </a-modal>
-
 
   <a-back-top />
 </template>
@@ -959,7 +1023,9 @@ const handleOtpBackspace = (e, index) => {
 
 const handleOtpPaste = (e) => {
   e.preventDefault();
-  const paste = (e.clipboardData?.getData("text") || "").replace(/\D/g, "").slice(0, 6);
+  const paste = (e.clipboardData?.getData("text") || "")
+    .replace(/\D/g, "")
+    .slice(0, 6);
   paste.split("").forEach((char, i) => {
     otpDigits.value[i] = char;
   });
@@ -996,7 +1062,10 @@ const handleLogin = async () => {
   } catch (error) {
     isLoading.value = false;
     if (error.response) {
-      showNotification("error", error.response.data.message || "An unexpected error occurred");
+      showNotification(
+        "error",
+        error.response.data.message || "An unexpected error occurred",
+      );
     } else {
       showNotification("error", "Network or server error");
     }
@@ -1019,6 +1088,7 @@ const handleVerifyOtp = async () => {
     isLoading.value = false;
     if (res?.data?.status === "success") {
       localStorage.setItem("token", res?.data?.token);
+      localStorage.setItem("mobile", res?.data?.mobile);
       showNotification("success", res?.data?.message);
       open.value = false;
       phone.value = "";
@@ -1033,7 +1103,10 @@ const handleVerifyOtp = async () => {
   } catch (error) {
     isLoading.value = false;
     if (error.response) {
-      showNotification("error", error.response.data.message || "An unexpected error occurred");
+      showNotification(
+        "error",
+        error.response.data.message || "An unexpected error occurred",
+      );
     } else {
       showNotification("error", "Network or server error");
     }
