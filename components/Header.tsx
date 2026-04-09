@@ -7,7 +7,7 @@ import { Icon } from "@iconify/react";
 import { Badge } from "antd";
 import { useCartStore } from "@/stores/cartStore";
 import { useSearchStore } from "@/stores/searchStore";
-import { formatNumber } from "@/lib/config";
+import { formatNumber, asset } from "@/lib/config";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -31,17 +31,19 @@ export default function Header({
   const navSearchInput = useRef<HTMLInputElement>(null);
   const mobileSearchInput = useRef<HTMLInputElement>(null);
 
+  const isSearchPage = pathname === "/search" || pathname === "/search/";
+
   useEffect(() => {
-    if (pathname === "/search") {
+    if (isSearchPage) {
       setTimeout(() => {
         navSearchInput.current?.focus();
         mobileSearchInput.current?.focus();
       }, 100);
     }
-  }, [pathname]);
+  }, [isSearchPage]);
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white sticky top-0 z-50 shadow-sm">
       {/* Top bar */}
       <div className="bg-[#388072] font-bold py-2">
         <div className="flex items-center justify-between border-x border-white px-2 max-w-6xl mx-auto text-white">
@@ -62,7 +64,7 @@ export default function Header({
               <Link href="/" className="flex items-center group">
                 <img
                   className="h-10 w-32 md:w-full transition-transform duration-300 group-hover:scale-105"
-                  src="/ousadbazar/images/ousadbazar.svg"
+                  src={asset("/images/ousadbazar.svg")}
                   alt="Logo"
                 />
               </Link>
@@ -72,7 +74,7 @@ export default function Header({
             <div className="hidden md:flex items-center justify-end flex-1 space-x-6 lg:space-x-8">
               {/* Search Bar */}
               <div className="flex-1 ml-[75px] max-w-xl">
-                {pathname === "/search" ? (
+                {isSearchPage ? (
                   <div className="flex items-center bg-white border-2 border-[#388072] rounded-full overflow-hidden shadow-sm">
                     <div className="pl-4">
                       {!searchStore.searchLoading ? (
@@ -182,7 +184,7 @@ export default function Header({
 
         {/* Mobile Search */}
         <div className="md:hidden bg-white dark:bg-gray-800 relative z-[998] px-3 pb-2">
-          {pathname === "/search" ? (
+          {isSearchPage ? (
             <div className="flex items-center bg-white border-2 border-[#388072] rounded-full overflow-hidden shadow-sm">
               <div className="pl-4">
                 {!searchStore.searchLoading ? (
@@ -215,7 +217,7 @@ export default function Header({
       </nav>
 
       {/* Desktop sub-navigation */}
-      <div className="border-y border-[#e8e8e8] py-4 hidden md:block">
+      {/* <div className="border-y border-[#e8e8e8] py-4 hidden md:block">
         <div className="flex items-center justify-between px-2 max-w-6xl mx-auto text-black">
           <div className="flex items-center font-semibold text-gray-600 gap-3">
             <Link href="/" className={pathname === "/" ? "active-link" : ""}>
@@ -244,7 +246,7 @@ export default function Header({
             )}
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

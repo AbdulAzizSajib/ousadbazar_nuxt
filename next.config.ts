@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // basePath: "/ousadbazar",
   output: "export",
-  basePath: "/ousadbazar",
+  trailingSlash: true,
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -11,6 +12,9 @@ const nextConfig: NextConfig = {
         hostname: "ecommerce-pharma.s3.ap-southeast-1.amazonaws.com",
       },
     ],
+  },
+  experimental: {
+    staticGenerationRetryCount: 3,
   },
 };
 

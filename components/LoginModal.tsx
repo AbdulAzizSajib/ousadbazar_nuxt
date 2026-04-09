@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { Modal } from "antd";
 import { Icon } from "@iconify/react";
 import axios from "axios";
-import { apiBasePharma } from "@/lib/config";
+import { apiBasePharma, asset } from "@/lib/config";
 import { showNotification } from "@/lib/notification";
 
 interface LoginModalProps {
@@ -123,7 +123,7 @@ export default function LoginModal({ open, onClose, onLoginSuccess }: LoginModal
       <div className="w-full bg-white flex flex-col md:flex-row overflow-hidden">
         {/* Left Image Section */}
         <div className="hidden md:flex w-1/2 bg-[#f0faf7] flex-col items-center justify-center p-8">
-          <img className="w-[85%] max-w-[320px]" src="/ousadbazar/images/loginmedi.svg" alt="Login" />
+          <img className="w-[85%] max-w-[320px]" src={asset("/images/loginmedi.svg")} alt="Login" />
           <div className="text-center mt-6">
             <h3 className="text-lg font-bold text-gray-800">Quick & easy ordering process</h3>
             <p className="text-sm text-gray-500 mt-2 max-w-[280px] mx-auto">Now you can order your medicine from Ousad Bazar.</p>

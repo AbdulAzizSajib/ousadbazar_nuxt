@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Dropdown } from "antd";
 import { Icon } from "@iconify/react";
 import { useCartStore } from "@/stores/cartStore";
-import { formatNumber, imgBasePharma } from "@/lib/config";
+import { formatNumber, imgBasePharma, asset } from "@/lib/config";
 import { stockQuantity } from "@/lib/stockUtils";
 import type { Product } from "@/types";
 
@@ -66,7 +66,7 @@ export default function ProductCard({ item }: ProductCardProps) {
           </div>
         )}
 
-      <Link href={`/product/${item?.id}`} className="w-full block">
+      <Link href={`/product?id=${item?.id}`} className="w-full block">
         <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center bg-white dark:bg-gray-800 aspect-square w-full overflow-hidden">
           <img
             width={209.53}
@@ -75,13 +75,13 @@ export default function ProductCard({ item }: ProductCardProps) {
             className="h-full w-full object-cover object-center"
             src={`${imgBasePharma}/${item?.path}`}
             alt={item?.name}
-            onError={(e) => { (e.target as HTMLImageElement).src = "/ousadbazar/images/default.jpg"; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = asset("/images/default.jpg"); }}
           />
         </div>
       </Link>
 
       <div className="flex flex-1 flex-col p-2 md:px-2 md:pb-2">
-        <Link href={`/product/${item?.id}`} className="w-full block">
+        <Link href={`/product?id=${item?.id}`} className="w-full block">
           <div className="mb-1 min-h-[28px]">
             <span className="inline-block bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 text-xs font-medium px-3 rounded-lg border border-blue-200" title={item?.category?.name}>
               {item?.category?.name}
@@ -107,7 +107,7 @@ export default function ProductCard({ item }: ProductCardProps) {
         </Link>
 
         <div className="mt-auto flex items-end justify-between gap-2">
-          <Link href={`/product/${item?.id}`} className="w-full block">
+          <Link href={`/product?id=${item?.id}`} className="w-full block">
             <div className="flex min-h-[44px] flex-col justify-end">
               {item?.product_prices?.selling_price !== null &&
                 item?.product_prices?.ecom_discount_percentage !== null &&

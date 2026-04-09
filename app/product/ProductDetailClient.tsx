@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Dropdown } from "antd";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma, imgBasePharma } from "@/lib/config";
+import { imgBasePharma, asset } from "@/lib/config";
 import { useCartStore } from "@/stores/cartStore";
+import { useProduct } from "@/lib/hooks/useProducts";
 import type { Product } from "@/types";
 
 interface ProductDetailClientProps {
@@ -14,27 +14,13 @@ interface ProductDetailClientProps {
 }
 
 export default function ProductDetailClient({ id }: ProductDetailClientProps) {
-  const [productDetail, setProductDetail] = useState<Record<string, unknown> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { data: productDetail, isLoading: loading } = useProduct(id);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [calculatedItems, setCalculatedItems] = useState<{ index: number; quantity: number }[]>([]);
   const getCart = useCartStore((s) => s.getCart);
 
-  const stockQty = (item: Record<string, unknown> | null) => parseFloat(String(item?.balanced_quantity || 0));
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(`${apiBasePharma}/products/${id}`);
-        const data = Array.isArray(res?.data) ? res.data[0] : res.data;
-        setProductDetail(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchProduct();
-  }, [id]);
+  const stockQty = (item: Record<string, unknown> | null | undefined) => 
+    parseFloat(String(item?.balanced_quantity || 0));
 
   const handleDropdownClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -74,6 +60,65 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
     setDropdownOpen(false);
   };
 
+  const productName = String(productDetail?.name || "");
+  const productSize = String(productDetail?.packsize || productDetail?.category_name || "");
+
+  useEffect(() => {
+    if (!productDetail) return;
+
+    // Dynamic Title
+    const title = `Buy ${productName} ${productSize} Price in Bangladesh | OusadBazar`.slice(0, 60);
+    document.title = title;
+
+    // Dynamic Meta Description
+    const description = `Order ${productName} ${productSize} online in Bangladesh from OusadBazar at the best price. Enjoy fast delivery, 100% genuine products & easy online ordering across Aftab Nagar.`.slice(0, 160);
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", description);
+  }, [productDetail, productName, productSize]);
+
+  // FAQ structured data
+  const faqItems = productDetail
+    ? [
+        {
+          question: `What is the price of ${productName} in Bangladesh?`,
+          answer: `The latest price of ${productName} in Bangladesh is available on OusadBazar. Prices may vary depending on offers.`,
+        },
+        {
+          question: `Is ${productName} original?`,
+          answer: `Yes, OusadBazar provides 100% authentic and genuine products.`,
+        },
+        {
+          question: `How long does delivery take?`,
+          answer: `Delivery usually takes 24–48 hours inside Aftab Nagar depending on location.`,
+        },
+        {
+          question: `Can I return or replace the product?`,
+          answer: `Yes, if the product is damaged, expired, or incorrect, you can request a return or replacement as per our return policy.`,
+        },
+        {
+          question: `How can I order ${productName} online?`,
+          answer: `You can order ${productName} directly from OusadBazar by adding it to your cart and completing the checkout process.`,
+        },
+      ]
+    : [];
+
+  const faqJsonLd = productDetail
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
+      }
+    : null;
+
   if (loading || !productDetail) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -103,6 +148,8 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
   }));
 
   return (
+
+    
     <div className="min-h-screen px-3 md:px-0">
       <nav className="flex items-center space-x-2 text-xs py-3">
         <Link href="/" className="flex items-center text-gray-500 hover:text-[#388072] transition-colors">
@@ -118,10 +165,10 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
             <div className="relative overflow-hidden rounded-xl">
               <img
                 className="w-full h-auto object-contain"
-                src={productDetail?.path ? `${imgBasePharma}/${productDetail.path}` : "/ousadbazar/images/default.jpg"}
+                src={productDetail?.path ? `${imgBasePharma}/${productDetail.path}` : asset("/images/default.jpg")}
                 alt={String(productDetail?.name || "")}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/ousadbazar/images/default.jpg";
+                  (e.target as HTMLImageElement).src = asset("/images/default.jpg");
                 }}
               />
             </div>
@@ -217,7 +264,7 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
               <h2 className="text-base font-bold text-gray-900">পণ্যের বিবরণ</h2>
             </div>
             <div className="p-5 space-y-3">
-              <p className="text-gray-700">{String(productDetail?.name || "")}</p>
+              <h2 className="text-gray-700">{String(productDetail?.name || "")}</h2>
               {productDetail?.generic_name ? (
                 <div className="flex items-start gap-2">
                   <span className="font-semibold text-gray-900 whitespace-nowrap">জেনেরিক:</span>
@@ -234,6 +281,38 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
           </div>
         </div>
       </div>
+
+      {/* FAQ Section */}
+      <div className="mb-8">
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-200">
+            <Icon icon="mdi:frequently-asked-questions" className="w-5 h-5 text-[#388072]" />
+            <h2 className="text-base font-bold text-gray-900">Frequently Asked Questions</h2>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {faqItems.map((faq, i) => (
+              <details key={i} className="group">
+                <summary className="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition-colors">
+                  <span className="font-medium text-gray-900 text-sm pr-4">{faq.question}</span>
+                  <Icon
+                    icon="mdi:chevron-down"
+                    className="w-5 h-5 text-gray-400 shrink-0 transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <p className="px-5 pb-4 text-sm text-gray-600 leading-relaxed">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ JSON-LD Structured Data */}
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
     </div>
   );
 }

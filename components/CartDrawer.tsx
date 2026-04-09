@@ -3,7 +3,7 @@
 import { Drawer, Select, Popconfirm } from "antd";
 import { Icon } from "@iconify/react";
 import { useCartStore } from "@/stores/cartStore";
-import { formatNumber, imgBasePharma } from "@/lib/config";
+import { formatNumber, imgBasePharma, asset } from "@/lib/config";
 import { calculateStock } from "@/lib/stockUtils";
 import { showNotification } from "@/lib/notification";
 import { useRouter, usePathname } from "next/navigation";
@@ -98,7 +98,7 @@ export default function CartDrawer({ visible, onClose }: CartDrawerProps) {
                           className="object-cover rounded-md"
                           src={`${imgBasePharma}/${product.product_images[0]?.path}`}
                           alt={product.name}
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/ousadbazar/images/default.jpg"; }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = asset("/images/default.jpg"); }}
                         />
                       ) : (
                         <div className="w-20 h-20 bg-gray-200 rounded-md" />

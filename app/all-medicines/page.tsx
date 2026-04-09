@@ -1,18 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma, formatNumber } from "@/lib/config";
+import { formatNumber } from "@/lib/config";
 import ProductCard from "@/components/ProductCard";
+import { useAllProductsInfinite } from "@/lib/hooks/useInfiniteProducts";
 import type { Product } from "@/types";
 
 export default function AllMedicinesPage() {
-  const [allProduct, setAllProduct] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalProducts, setTotalProducts] = useState(0);
   const [sortBy, setSortBy] = useState("asc");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
@@ -20,16 +15,33 @@ export default function AllMedicinesPage() {
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const infiniteScrollTrigger = useRef<HTMLDivElement>(null);
-  const pageRef = useRef(1);
-  const sortRef = useRef("asc");
+
+  // Use TanStack Query for infinite pagination
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = 
+    useAllProductsInfinite(sortBy);
+
+  // Flatten all products from pages
+  const allProduct = useMemo(
+    () => data?.pages.flatMap((page) => page.products) ?? [],
+    [data]
+  );
+
+  const totalProducts = useMemo(
+    () => data?.pages[0]?.total ?? 0,
+    [data]
+  );
 
   const supplierOptions = useMemo(() => {
-    const suppliers = allProduct.map((item) => item?.supplier?.company_name).filter(Boolean) as string[];
+    const suppliers = allProduct
+      .map((item) => item?.supplier?.company_name)
+      .filter(Boolean) as string[];
     return [...new Set(suppliers)].sort((a, b) => a.localeCompare(b));
   }, [allProduct]);
 
   const categoryOptions = useMemo(() => {
-    const categories = allProduct.map((item) => item?.category?.name).filter(Boolean) as string[];
+    const categories = allProduct
+      .map((item) => item?.category?.name)
+      .filter(Boolean) as string[];
     return [...new Set(categories)].sort((a, b) => a.localeCompare(b));
   }, [allProduct]);
 
@@ -38,52 +50,39 @@ export default function AllMedicinesPage() {
       const supplier = item?.supplier?.company_name;
       const category = item?.category?.name;
       const price = Number(item?.product_prices?.ecom_final_selling_price || 0);
-      const bySupplier = selectedSuppliers.length === 0 || (supplier && selectedSuppliers.includes(supplier));
-      const byCategory = selectedCategories.length === 0 || (category && selectedCategories.includes(category));
+      const bySupplier =
+        selectedSuppliers.length === 0 ||
+        (supplier && selectedSuppliers.includes(supplier));
+      const byCategory =
+        selectedCategories.length === 0 ||
+        (category && selectedCategories.includes(category));
       const byMinPrice = minPrice === null || price >= minPrice;
       const byMaxPrice = maxPrice === null || price <= maxPrice;
       return bySupplier && byCategory && byMinPrice && byMaxPrice;
     });
   }, [allProduct, selectedSuppliers, selectedCategories, minPrice, maxPrice]);
 
-  const clearFilters = () => { setSelectedSuppliers([]); setSelectedCategories([]); setMinPrice(null); setMaxPrice(null); };
+  const clearFilters = () => {
+    setSelectedSuppliers([]);
+    setSelectedCategories([]);
+    setMinPrice(null);
+    setMaxPrice(null);
+  };
 
-  const getAllData = useCallback(async (reset = false) => {
-    if (loading) return;
-    if (reset) { pageRef.current = 1; setAllProduct([]); setHasMore(true); }
-    setLoading(true);
-    try {
-      const res = await axios.get(`${apiBasePharma}/products/all-products-paginated?page=${pageRef.current}&paginate=20&sort_by=${sortRef.current}`);
-      if (res.data) {
-        const newProducts: Product[] = (res.data.data || []).map((p: Record<string, unknown>) => ({
-          ...p,
-          category: { name: p.category_name as string },
-          supplier: { company_name: p.company_name as string },
-          product_prices: { selling_price: p.selling_price as number, ecom_final_selling_price: p.selling_price as number, ecom_discount_percentage: null, pack_quantity: 1, ecom_pack_name: { name: " Pcs" } },
-          product_images: [],
-          stock_batches: p.stock ? [{ balanced_quantity: p.stock as number }] : [],
-        }));
-        setAllProduct((prev) => pageRef.current === 1 ? newProducts : [...prev, ...newProducts]);
-        setTotalProducts(res.data.total || 0);
-        setHasMore(pageRef.current < (res.data.last_page || 1));
-      }
-    } finally { setLoading(false); }
-  }, []);
-
-  const loadMore = useCallback(() => {
-    if (hasMore && !loading) { pageRef.current++; setCurrentPage(pageRef.current); getAllData(); }
-  }, [hasMore, loading, getAllData]);
-
-  useEffect(() => { getAllData(true); }, []);
-
+  // Intersection observer for infinite scroll
   useEffect(() => {
     if (!infiniteScrollTrigger.current) return;
-    const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting) loadMore(); }, { rootMargin: "100px", threshold: 0.1 });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "100px", threshold: 0.1 }
+    );
     observer.observe(infiniteScrollTrigger.current);
     return () => observer.disconnect();
-  }, [loadMore]);
-
-  const resetAndGetData = () => { sortRef.current = sortBy; getAllData(true); };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <section className="w-full rounded-lg px-3 md:px-0 py-3">
@@ -146,7 +145,7 @@ export default function AllMedicinesPage() {
           <div className="p-2 flex justify-between items-center">
             <div className="flex gap-2 items-center">
               <h2 className="text-gray-700">Sort By:</h2>
-              <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); sortRef.current = e.target.value; getAllData(true); }} className="bg-white text-gray-900 border rounded">
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-white text-gray-900 border rounded">
                 <option value="asc">Ascending</option>
                 <option value="desc">Descending</option>
               </select>
@@ -159,9 +158,9 @@ export default function AllMedicinesPage() {
           </div>
 
           <div className="mb-3">
-            {!loading && filteredProducts.length <= 0 && <div className="flex justify-center items-center"><p className="text-xl">No data Found!</p></div>}
+            {!isLoading && filteredProducts.length <= 0 && <div className="flex justify-center items-center"><p className="text-xl">No data Found!</p></div>}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-2 gap-y-4 capitalize lg:place-items-stretch">
-              {loading && currentPage === 1 && Array.from({ length: 12 }, (_, n) => (
+              {isLoading && Array.from({ length: 12 }, (_, n) => (
                 <div key={`skeleton-${n}`} className="bg-white mb-6 border rounded-md overflow-hidden w-full max-w-[210px] animate-pulse">
                   <div className="w-full h-[209.53px] bg-gray-200" />
                   <div className="p-2"><div className="mb-3"><div className="h-5 w-20 bg-gray-200 rounded-lg" /></div><div className="h-[40px] space-y-1.5"><div className="h-3 w-full bg-gray-200 rounded" /><div className="h-3 w-3/4 bg-gray-200 rounded" /></div></div>
@@ -170,8 +169,8 @@ export default function AllMedicinesPage() {
               {filteredProducts.map((item) => <ProductCard key={item.id} item={item} />)}
             </div>
             <div ref={infiniteScrollTrigger} className="h-20 flex justify-center items-center">
-              {loading && currentPage > 1 && <div className="flex items-center"><Icon icon="mingcute:loading-line" className="h-10 w-10 animate-spin text-[#388072]" /><span className="ml-2">Loading more products...</span></div>}
-              {!hasMore && allProduct.length > 0 && <div className="text-center text-gray-500">You&apos;ve reached the end of the products list.</div>}
+              {isFetchingNextPage && <div className="flex items-center"><Icon icon="mingcute:loading-line" className="h-10 w-10 animate-spin text-[#388072]" /><span className="ml-2">Loading more products...</span></div>}
+              {!hasNextPage && allProduct.length > 0 && <div className="text-center text-gray-500">You&apos;ve reached the end of the products list.</div>}
             </div>
           </div>
         </div>

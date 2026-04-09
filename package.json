@@ -3,35 +3,36 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
+    "lint": "eslint"
   },
   "dependencies": {
+    "@iconify/react": "^5.2.0",
+    "@tanstack/react-query": "^5.96.2",
+    "antd": "^5.25.1",
+    "axios": "^1.11.0",
+    "dayjs": "^1.11.13",
+    "lodash.debounce": "^4.0.8",
     "next": "^15.3.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zustand": "^5.0.5",
-    "axios": "^1.11.0",
-    "lodash.debounce": "^4.0.8",
-    "@iconify/react": "^5.2.0",
-    "antd": "^5.25.1",
-    "dayjs": "^1.11.13",
-    "sass": "^1.90.0"
+    "sass": "^1.90.0",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.18",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
-    "@types/lodash.debounce": "^4.0.9",
-    "typescript": "^5.8.3",
-    "tailwindcss": "^3.4.17",
-    "postcss": "^8.5.3",
     "autoprefixer": "^10.4.21",
-    "@tailwindcss/typography": "^0.5.18",
     "daisyui": "^4.12.23",
     "eslint": "^9.25.1",
-    "eslint-config-next": "^15.3.1"
+    "eslint-config-next": "^15.3.1",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
   }
 }
