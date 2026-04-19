@@ -8,7 +8,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#2c6b5e] text-white">
       {/* Main Footer */}
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="lg:col-span-1">
@@ -145,7 +145,7 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-white/15">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-gray-400 text-sm">
             &copy; ২০২৫ ঔষধবাজার.কম — সর্বস্বত্ব সংরক্ষিত।
           </p>

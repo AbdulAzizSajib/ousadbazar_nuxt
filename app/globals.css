@@ -2,18 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap");
-
 body {
-  font-family: "Open Sans", sans-serif;
   font-size: 14px;
-  font-weight: 400;
+  line-height: 1.45;
   overflow-x: hidden;
   @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
 }
 
 .text-primary {
-  color: #388072;
+  color: #13a89e;
 }
 
 .text-secondary {
@@ -21,11 +18,11 @@ body {
 }
 
 .bg-primary {
-  background: #388072;
+  background: #13a89e;
 }
 
 .border-primary {
-  border: 1px solid #388072;
+  border: 1px solid #13a89e;
 }
 
 * {
@@ -36,12 +33,12 @@ body {
   padding: 0 16px;
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
@@ -51,7 +48,7 @@ input[type="number"] {
 
 /* Active link styles */
 .active-link span {
-  color: #388072 !important;
+  color: #13a89e !important;
   font-weight: 700;
 }
 

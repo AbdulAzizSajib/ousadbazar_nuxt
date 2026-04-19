@@ -106,8 +106,7 @@ export default function ProductCard({ item }: ProductCardProps) {
           </div>
         </Link>
 
-        <div className="mt-auto flex items-end justify-between gap-2">
-          <Link href={`/product?id=${item?.id}`} className="w-full block">
+        <Link href={`/product?id=${item?.id}`} className="w-full block">
             <div className="flex min-h-[44px] flex-col justify-end">
               {item?.product_prices?.selling_price !== null &&
                 item?.product_prices?.ecom_discount_percentage !== null &&
@@ -121,6 +120,9 @@ export default function ProductCard({ item }: ProductCardProps) {
               </span>
             </div>
           </Link>
+
+        <div className="mt-auto flex items-end justify-between gap-2">
+          
 
           <Dropdown
             menu={{ items: menuItems }}
@@ -138,7 +140,7 @@ export default function ProductCard({ item }: ProductCardProps) {
               {loadingItemId === item?.id ? (
                 <Icon className="animate-spin w-4 h-4" icon="mingcute:loading-line" />
               ) : (
-                <span className="relative z-10 drop-shadow-sm tracking-wide md:text-xs font-light text-[12px]">Add</span>
+                <span className="relative z-10 drop-shadow-sm tracking-wide md:text-xs font-light text-[12px]">Add to cart</span>
               )}
             </button>
           </Dropdown>

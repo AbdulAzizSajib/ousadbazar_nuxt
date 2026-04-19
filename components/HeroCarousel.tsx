@@ -12,7 +12,7 @@ export type CarouselSlide = {
 
 const defaultSlides: CarouselSlide[] = [
   { id: 1, image: "/carousel/banner-1.png", alt: "Banner 1" },
-  { id: 2, image: "/carousel/Banner-2.png", alt: "Banner 2" },
+  // { id: 2, image: "/carousel/Banner-2.png", alt: "Banner 2" },
   { id: 3, image: "/carousel/Banner-3.png", alt: "Banner 3" },
 
 ];
@@ -43,12 +43,14 @@ export default function HeroCarousel({
         className="flex transition-transform duration-700 ease-in-out"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
+
+         {/* h-[170px] sm:h-[230px] md:h-[300px] lg:h-[410px]  */}
         {slides.map((slide) => {
           const img = (
             <img
               src={slide.image}
               alt={slide.alt || `Slide ${slide.id}`}
-              className="block w-full h-[170px] sm:h-[230px] md:h-[300px] lg:h-[410px] object-cover border rounded-sm"
+              className="block w-full h-full object-cover border rounded-sm"
             />
           );
           return (

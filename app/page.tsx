@@ -65,13 +65,31 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, [loading, hasMore, getAllProduct]);
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "OusadBazar",
+    url: "https://ousadbazar.com",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://ousadbazar.com/search?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
-    <div className="px-3 md:px-0">
+    <div className="px-3 md:px-0 bg-[#f9fafb]">
+      {/* Website JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+
       {/* Hero Carousel */}
       <HeroCarousel />
 
       {/* Best Selling Products Header */}
-      <div className="flex justify-between items-center my-4">
+      <div className="flex justify-between items-center my-8 md:mx-6">
         <h2 className="text-base md:text-xl font-bold capitalize !mb-0 text-[#388072]">
           Best Selling Products
         </h2>
@@ -90,7 +108,7 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-x-5 gap-y-4 capitalize lg:place-items-stretch">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-x-0 gap-y-4 capitalize lg:place-items-center">
           {/* Skeleton */}
           {loading && currentPage === 1 &&
             Array.from({ length: 14 }, (_, n) => (

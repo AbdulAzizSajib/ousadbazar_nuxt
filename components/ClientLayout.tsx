@@ -46,8 +46,8 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       />
 
       <main>
-        <div className="bg-white dark:bg-gray-900">
-          <div className="max-w-6xl mx-auto">{children}</div>
+        <div className="bg-[#f9fafb] dark:bg-gray-900">
+          <div className="container mx-auto">{children}</div>
           <Footer />
         </div>
       </main>
