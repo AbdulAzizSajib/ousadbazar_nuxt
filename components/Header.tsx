@@ -25,12 +25,14 @@ export default function Header({
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showTopBar, setShowTopBar] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const cartProduct = useCartStore((s) => s.cartProduct);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const searchStore = useSearchStore();
   const navSearchInput = useRef<HTMLInputElement>(null);
   const mobileSearchInput = useRef<HTMLInputElement>(null);
+  const lastScrollY = useRef(0);
 
   const isSearchPage = pathname === '/search' || pathname === '/search/';
 
@@ -45,7 +47,16 @@ export default function Header({
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < 10) {
+        setShowTopBar(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setShowTopBar(false);
+      } else {
+        setShowTopBar(true);
+      }
+      lastScrollY.current = currentScrollY;
+      setShowScrollTop(currentScrollY > 300);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -56,23 +67,30 @@ export default function Header({
   };
 
   return (
-    <div className="w-full bg-white sticky top-0 z-50 shadow-sm">
-      {/* Top bar */}
-      <div className="bg-primary font-light py-2">
-        <div className="flex items-center justify-between  px-2 container mx-auto text-white">
+    // ✅ পুরো header এক wrapper এ, translateY দিয়ে slide হবে
+    <div
+      className={`w-full bg-white sticky top-0 z-50 shadow-sm transition-transform duration-300 ease-in-out ${
+        showTopBar ? 'translate-y-0' : '-translate-y-[36px]'
+      }`}
+    >
+      {/* Top bar — fixed 36px height */}
+      <div className="bg-primary font-light h-[36px] flex items-center">
+        <div className="flex items-center justify-between px-2 container mx-auto text-white">
           <h2>Welcome to Ousad Bazar</h2>
           <div className="flex items-center gap-3">
-            <h2>Track Order</h2>
+            <Link href="/order-tracking">Track Order</Link>
+            <p>|</p>
             <h2>Become a Seller</h2>
+            <p>|</p>
             <h2>বাংলা</h2>
           </div>
         </div>
       </div>
 
       {/* Navbar */}
-      <nav className="z-[999] container mx-auto transition-all duration-500 ease-in-out dark:bg-gray-900">
-        <div className="px-4">
-          <div className="flex justify-between items-center h-[64px]">
+      <nav className="z-[999] container mx-auto dark:bg-gray-900">
+        <div className="mt-2">
+          <div className="flex justify-between items-center h-[56px]">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center group">
@@ -89,12 +107,12 @@ export default function Header({
               {/* Search Bar */}
               <div className="flex-1 ml-[75px]">
                 {isSearchPage ? (
-                  <div className="flex items-center bg-[#f1f5f7] border  rounded-xl overflow-hidden shadow-sm">
+                  <div className="flex items-center bg-[#f1f5f7] border rounded-xl overflow-hidden shadow-sm">
                     <div className="pl-4">
                       {!searchStore.searchLoading ? (
-                        <Icon icon="mingcute:search-line" className="text-[#13a89e] w-5 h-5" />
+                        <Icon icon="mingcute:search-line" className="text-primary w-5 h-5" />
                       ) : (
-                        <Icon icon="ep:loading" className="text-[#13a89e] w-5 h-5 animate-spin" />
+                        <Icon icon="ep:loading" className="text-primary w-5 h-5 animate-spin" />
                       )}
                     </div>
                     <input
@@ -136,7 +154,7 @@ export default function Header({
 
               {/* Right Side Actions */}
               <div className="flex items-center space-x-3">
-                <span className="border p-2 rounded-lg flex items-center gap-2 font-semibold ">
+                <span className="border p-2 rounded-lg flex items-center gap-2 font-semibold">
                   <Icon className="size-5" icon="mdi-light:phone" />
                   <h2>01915606090</h2>
                 </span>
@@ -152,16 +170,12 @@ export default function Header({
                 >
                   <button
                     onClick={onShowDrawer}
-                    className="p-2 rounded-xl bg-[#13a89e] text-white transition-all duration-300 group active:scale-95 flex items-center gap-1.5 text-base font-semibold"
+                    className="px-4 py-2 rounded-xl bg-[#13a89e] text-white transition-all duration-300 active:scale-95 flex items-center gap-1.5 text-base font-semibold"
                   >
-                    <Icon className=" size-5" icon="solar:cart-large-2-outline" />
+                    <Icon className="size-5" icon="solar:cart-large-2-outline" />
                     cart
                   </button>
                 </Badge>
-
-                {/* <span className="text-xl text-gray-900 dark:text-gray-100">
-                  ৳ {formatNumber(totalPrice || 0)}
-                </span> */}
 
                 {!isLoggedIn ? (
                   <button
@@ -307,48 +321,24 @@ export default function Header({
         </div>
       </nav>
 
+      {/* Desktop sub-navigation */}
+      <div className="py-2 hidden md:block">
+        <div className="flex items-center gap-5 container mx-auto px-4">
+          <h2>Medicine</h2>
+          <h2>Lab Test</h2>
+        </div>
+      </div>
+
       {/* Scroll to Top Button */}
-      {showScrollTop && (
+      {/* {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 p-3 bg-[#388072] text-white rounded-full shadow-lg shadow-[#388072]/30 hover:bg-[#2d6a5a] transition-all duration-300 active:scale-90 animate-bounce-in"
+          className="fixed bottom-6 right-6 z-50 p-3 bg-[#388072] text-white rounded-full shadow-lg shadow-[#388072]/30 hover:bg-[#2d6a5a] transition-all duration-300 active:scale-90"
           aria-label="Scroll to top"
         >
           <Icon icon="solar:arrow-up-linear" className="w-6 h-6" />
         </button>
-      )}
-
-      {/* Desktop sub-navigation */}
-      {/* <div className="border-y border-[#e8e8e8] py-4 hidden md:block">
-        <div className="flex items-center justify-between px-2 max-w-6xl mx-auto text-black">
-          <div className="flex items-center font-semibold text-gray-600 gap-3">
-            <Link href="/" className={pathname === "/" ? "active-link" : ""}>
-              <div className="relative group px-4 py-2 rounded-full transition-all duration-300 hover:bg-[#388072]/10">
-                <span className="text-gray-700 dark:text-gray-200 font-semibold text-[15px] tracking-wide transition-colors duration-200 group-hover:text-[#388072]">Home</span>
-              </div>
-            </Link>
-            <Link href="/all-medicines" className={pathname === "/all-medicines" ? "active-link" : ""}>
-              <div className="relative group px-4 py-2 rounded-full transition-all duration-300 hover:bg-[#388072]/10">
-                <span className="text-gray-700 dark:text-gray-200 font-semibold text-[15px] tracking-wide transition-colors duration-200 group-hover:text-[#388072]">All Medicines</span>
-              </div>
-            </Link>
-            {isLoggedIn && (
-              <>
-                <Link href="/order-history" className={pathname === "/order-history" ? "active-link" : ""}>
-                  <div className="relative group px-4 py-2 rounded-full transition-all duration-300 hover:bg-[#388072]/10">
-                    <span className="text-gray-700 dark:text-gray-200 font-semibold text-[15px] tracking-wide transition-colors duration-200 group-hover:text-[#388072]">Order History</span>
-                  </div>
-                </Link>
-                <Link href="/order-tracking" className={pathname === "/order-tracking" ? "active-link" : ""}>
-                  <div className="relative group px-4 py-2 rounded-full transition-all duration-300 hover:bg-[#388072]/10">
-                    <span className="text-gray-700 dark:text-gray-200 font-semibold text-[15px] tracking-wide transition-colors duration-200 group-hover:text-[#388072]">Order Tracking</span>
-                  </div>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div> */}
+      )} */}
     </div>
   );
 }

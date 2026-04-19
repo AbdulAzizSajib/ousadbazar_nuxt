@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { QueryProviders } from '@/components/QueryProviders';
 import { ClientLayout } from '@/components/ClientLayout';
 import './globals.css';
+import ScrollToTop from '@/components/ScrollToTop';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${plusJakartaSans.className} bg-[#f9fafb]`}>
         <QueryProviders>
-          <ClientLayout>{children}</ClientLayout>
+          <ClientLayout>
+            {children}
+            <ScrollToTop />
+          </ClientLayout>
         </QueryProviders>
       </body>
     </html>

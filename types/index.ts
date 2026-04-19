@@ -46,6 +46,8 @@ export interface Product {
   ecom_final_selling_price?: number;
   ecom_discount_percentage?: number | null;
   pack_size?: { id: string; quantity: number };
+  packsize_quantity?: number; // ← এটা add করো
+  packsize_name?: string; // ← এটা add করো
 }
 
 export interface CartProduct extends Product {

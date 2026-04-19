@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import { Icon } from "@iconify/react";
-import { Drawer } from "antd";
-import ProductCard from "@/components/ProductCard";
-import { useAllProductsInfinite } from "@/lib/hooks/useInfiniteProducts";
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Icon } from '@iconify/react';
+import { Drawer } from 'antd';
+import ProductCard from '@/components/ProductCard';
+import { useAllProductsInfinite } from '@/lib/hooks/useInfiniteProducts';
 
 export default function AllMedicinesPage() {
-  const [sortBy, setSortBy] = useState("asc");
+  const [sortBy, setSortBy] = useState('asc');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -18,10 +18,7 @@ export default function AllMedicinesPage() {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useAllProductsInfinite(sortBy);
 
-  const allProduct = useMemo(
-    () => data?.pages.flatMap((page) => page.products) ?? [],
-    [data]
-  );
+  const allProduct = useMemo(() => data?.pages.flatMap((page) => page.products) ?? [], [data]);
 
   const totalProducts = useMemo(() => data?.pages[0]?.total ?? 0, [data]);
 
@@ -33,9 +30,7 @@ export default function AllMedicinesPage() {
   }, [allProduct]);
 
   const categoryOptions = useMemo(() => {
-    const categories = allProduct
-      .map((item) => item?.category?.name)
-      .filter(Boolean) as string[];
+    const categories = allProduct.map((item) => item?.category?.name).filter(Boolean) as string[];
     return [...new Set(categories)].sort((a, b) => a.localeCompare(b));
   }, [allProduct]);
 
@@ -45,11 +40,9 @@ export default function AllMedicinesPage() {
       const category = item?.category?.name;
       const price = Number(item?.product_prices?.ecom_final_selling_price || 0);
       const bySupplier =
-        selectedSuppliers.length === 0 ||
-        (supplier && selectedSuppliers.includes(supplier));
+        selectedSuppliers.length === 0 || (supplier && selectedSuppliers.includes(supplier));
       const byCategory =
-        selectedCategories.length === 0 ||
-        (category && selectedCategories.includes(category));
+        selectedCategories.length === 0 || (category && selectedCategories.includes(category));
       const byMinPrice = minPrice === null || price >= minPrice;
       const byMaxPrice = maxPrice === null || price <= maxPrice;
       return bySupplier && byCategory && byMinPrice && byMaxPrice;
@@ -77,7 +70,7 @@ export default function AllMedicinesPage() {
           fetchNextPage();
         }
       },
-      { rootMargin: "100px", threshold: 0.1 }
+      { rootMargin: '100px', threshold: 0.1 }
     );
     observer.observe(infiniteScrollTrigger.current);
     return () => observer.disconnect();
@@ -152,10 +145,8 @@ export default function AllMedicinesPage() {
           <label className="grid gap-1 text-xs text-gray-500">
             Min
             <input
-              value={minPrice ?? ""}
-              onChange={(e) =>
-                setMinPrice(e.target.value ? Number(e.target.value) : null)
-              }
+              value={minPrice ?? ''}
+              onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : null)}
               type="number"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#388072] focus:ring-1 focus:ring-[#388072]/20"
               min="0"
@@ -165,10 +156,8 @@ export default function AllMedicinesPage() {
           <label className="grid gap-1 text-xs text-gray-500">
             Max
             <input
-              value={maxPrice ?? ""}
-              onChange={(e) =>
-                setMaxPrice(e.target.value ? Number(e.target.value) : null)
-              }
+              value={maxPrice ?? ''}
+              onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
               type="number"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#388072] focus:ring-1 focus:ring-[#388072]/20"
               min="0"
@@ -181,15 +170,13 @@ export default function AllMedicinesPage() {
   );
 
   return (
-    <section className="w-full px-3 md:px-0 py-3">
-      <div className="grid grid-cols-1 md:grid-cols-[290px_1fr] xl:grid-cols-[290px_1fr] gap-4">
+    <section className="w-full px-3 md:px-0 py-3 min-h-screen">
+      <div className="grid grid-cols-1 md:grid-cols-[290px_1fr] xl:grid-cols-[290px_1fr] gap-4 items-start">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block h-fit md:sticky md:top-[84px]">
-          <div className="bg-white border border-gray-200 rounded-xl md:max-h-[calc(100vh-96px)] overflow-hidden flex flex-col">
+        <aside className="hidden md:block self-start sticky top-[156px]">
+          <div className="bg-white border border-gray-200 rounded-xl md:max-h-[calc(100vh-168px)] overflow-hidden flex flex-col">
             <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100">
-              <h2 className="m-0 text-base font-semibold text-gray-900">
-                Filter Medicines
-              </h2>
+              <h2 className="m-0 text-base font-semibold text-gray-900">Filter Medicines</h2>
               {activeFilterCount > 0 && (
                 <button
                   type="button"
@@ -205,9 +192,9 @@ export default function AllMedicinesPage() {
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 ">
           {/* Top controls bar */}
-          <div className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 mb-3 flex justify-between items-center gap-3">
+          <div className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 mb-3 flex justify-between items-center gap-3 md:hidden">
             {/* Mobile filter button */}
             <button
               type="button"
@@ -274,10 +261,7 @@ export default function AllMedicinesPage() {
                 <ProductCard key={item.id} item={item} />
               ))}
             </div>
-            <div
-              ref={infiniteScrollTrigger}
-              className="h-20 flex justify-center items-center"
-            >
+            <div ref={infiniteScrollTrigger} className="h-20 flex justify-center items-center">
               {isFetchingNextPage && (
                 <div className="flex items-center">
                   <Icon
@@ -314,7 +298,7 @@ export default function AllMedicinesPage() {
         closable
         open={mobileFilterOpen}
         onClose={() => setMobileFilterOpen(false)}
-        width={typeof window !== "undefined" && window.innerWidth < 768 ? "85%" : 360}
+        width={typeof window !== 'undefined' && window.innerWidth < 768 ? '85%' : 360}
         footer={
           <div className="flex gap-2">
             <button

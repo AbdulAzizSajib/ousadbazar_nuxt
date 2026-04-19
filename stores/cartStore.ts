@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { showNotification } from "@/lib/notification";
-import type { CartProduct, Product } from "@/types";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { showNotification } from '@/lib/notification';
+import type { CartProduct, Product } from '@/types';
 
 interface CartState {
   isLoading: boolean;
@@ -38,15 +38,9 @@ export const useCartStore = create<CartState>()(
       },
 
       getCart: (product: Product, quantity: number, singleQty: number) => {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("token")
-            : null;
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token) {
-          showNotification(
-            "warning",
-            "Please login first to add items to cart"
-          );
+          showNotification('warning', 'Please login first to add items to cart');
           return false;
         }
 
@@ -54,8 +48,7 @@ export const useCartStore = create<CartState>()(
 
         let normalizedProduct = { ...product };
         if (
-          (!normalizedProduct?.product_images ||
-            normalizedProduct.product_images.length === 0) &&
+          (!normalizedProduct?.product_images || normalizedProduct.product_images.length === 0) &&
           normalizedProduct?.path
         ) {
           normalizedProduct = {
@@ -64,23 +57,29 @@ export const useCartStore = create<CartState>()(
           };
         }
 
-        const price = Number(
-          normalizedProduct?.product_prices?.ecom_final_selling_price || 0
+        // per piece price calculation
+        const packQty = Number(
+          normalizedProduct?.packsize_quantity ||
+            normalizedProduct?.product_prices?.pack_quantity ||
+            1
         );
-        const actual_price = Number(
-          normalizedProduct?.product_prices?.selling_price || 0
+        const packPrice = Number(
+          normalizedProduct?.product_prices?.ecom_final_selling_price ||
+            normalizedProduct?.selling_price ||
+            0
         );
-        const total_previous_price = actual_price * quantity;
+        const price = packPrice / packQty; // ৳525 / 30 = ৳17.50 per piece
 
-        const index = cartProduct.findIndex(
-          (item) => item?.id == normalizedProduct?.id
+        const actual_price = Number(
+          normalizedProduct?.product_prices?.selling_price || normalizedProduct?.selling_price || 0
         );
+        const perPieceActualPrice = actual_price / packQty;
+        const total_previous_price = perPieceActualPrice * quantity;
+
+        const index = cartProduct.findIndex((item) => item?.id == normalizedProduct?.id);
 
         if (index !== -1) {
-          showNotification(
-            "info",
-            `${normalizedProduct?.name} updated to cart!`
-          );
+          // showNotification('info', `${normalizedProduct?.name} updated in cart!`);
           const updatedCart = [...cartProduct];
           updatedCart[index] = {
             ...updatedCart[index],
@@ -105,10 +104,7 @@ export const useCartStore = create<CartState>()(
             selectedQuantity: quantity,
           } as CartProduct;
           set({ cartProduct: [newItem, ...cartProduct] });
-          showNotification(
-            "success",
-            `${normalizedProduct?.name} added to cart!`
-          );
+          showNotification('success', `${normalizedProduct?.name} added to cart!`);
         }
 
         calculateTotal();
@@ -120,7 +116,7 @@ export const useCartStore = create<CartState>()(
         const updatedCart = cartProduct.filter((_, i) => i !== index);
         set({ cartProduct: updatedCart });
         calculateTotal();
-        showNotification("success", "Item removed from cart!");
+        showNotification('success', 'Item removed from cart!');
       },
 
       resetCart: () => {
@@ -133,7 +129,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: "cart-storage",
+      name: 'cart-storage',
     }
   )
 );

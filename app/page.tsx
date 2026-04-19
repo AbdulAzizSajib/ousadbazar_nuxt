@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Link from "next/link";
-import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma, formatNumber, imgBasePharma } from "@/lib/config";
-import { useCartStore } from "@/stores/cartStore";
-import ProductCard from "@/components/ProductCard";
-import HeroCarousel from "@/components/HeroCarousel";
-import type { Product } from "@/types";
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import Link from 'next/link';
+import { Icon } from '@iconify/react';
+import axios from 'axios';
+import { apiBasePharma, formatNumber, imgBasePharma } from '@/lib/config';
+import { useCartStore } from '@/stores/cartStore';
+import ProductCard from '@/components/ProductCard';
+import HeroCarousel from '@/components/HeroCarousel';
+import type { Product } from '@/types';
 
 export default function HomePage() {
   const [allProduct, setAllProduct] = useState<Product[]>([]);
@@ -34,12 +34,12 @@ export default function HomePage() {
             ecom_final_selling_price: p.selling_price as number,
             ecom_discount_percentage: null,
             pack_quantity: 1,
-            ecom_pack_name: { name: " Pcs" },
+            ecom_pack_name: { name: ' Pcs' },
           },
           product_images: [],
           stock_batches: p.stock ? [{ balanced_quantity: p.stock as number }] : [],
         }));
-        setAllProduct((prev) => pageRef.current === 1 ? products : [...prev, ...products]);
+        setAllProduct((prev) => (pageRef.current === 1 ? products : [...prev, ...products]));
         setHasMore(pageRef.current < (res.data.last_page || 1));
         pageRef.current++;
         setCurrentPage(pageRef.current);
@@ -66,14 +66,14 @@ export default function HomePage() {
   }, [loading, hasMore, getAllProduct]);
 
   const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "OusadBazar",
-    url: "https://ousadbazar.com",
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'OusadBazar',
+    url: 'https://ousadbazar.com',
     potentialAction: {
-      "@type": "SearchAction",
-      target: "https://ousadbazar.com/search?q={search_term_string}",
-      "query-input": "required name=search_term_string",
+      '@type': 'SearchAction',
+      target: 'https://ousadbazar.com/search?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
     },
   };
 
@@ -89,36 +89,46 @@ export default function HomePage() {
       <HeroCarousel />
 
       {/* Best Selling Products Header */}
-      <div className="flex justify-between items-center my-8 md:mx-6">
-        <h2 className="text-base md:text-xl font-bold capitalize !mb-0 text-[#388072]">
-          Best Selling Products
-        </h2>
-        <Link href="/all-medicines">
-          <button className="bg-white dark:bg-gray-800 border-primary text-primary hover:text-white hover:bg-[#388072] px-2 md:px-6 py-0.5 md:py-2 rounded">
-            View All <Icon icon="ant-design:arrow-right-outlined" className="inline align-middle" />
+      <div className="flex justify-between items-center my-8 ">
+        <h2 className="text-base md:text-2xl font-bold capitalize">Best Selling</h2>
+        <Link href="/best-selling">
+          <button className=" dark:bg-gray-800  text-primary px-2 md:px-6 py-0.5 md:py-2">
+            See All <Icon icon="ant-design:arrow-right-outlined" className="inline align-middle" />
           </button>
         </Link>
       </div>
 
       {/* Products Grid */}
       <div className="mb-3">
-        {!loading && allProduct.length <= 0 && (
-          <div className="flex justify-center items-center">
-            <p className="text-xl">No data Found!</p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-x-0 gap-y-4 capitalize lg:place-items-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-x-0 gap-y-4 capitalize place-items-center md:place-items-start">
           {/* Skeleton */}
-          {loading && currentPage === 1 &&
-            Array.from({ length: 14 }, (_, n) => (
-              <div key={`skeleton-${n}`} className="bg-white dark:bg-gray-800 mb-6 border dark:border-gray-700 rounded-md overflow-hidden w-full max-w-[210px] animate-pulse">
+          {!loading &&
+            currentPage === 1 &&
+            Array.from({ length: 18 }, (_, n) => (
+              <div
+                key={`skeleton-${n}`}
+                className="bg-white dark:bg-gray-800 mb-6 border dark:border-gray-700 rounded-md overflow-hidden w-full max-w-[210px] animate-pulse"
+              >
                 <div className="w-full h-[209.53px] bg-gray-200" />
                 <div className="p-2 md:px-2 md:pb-2">
-                  <div className="mb-1"><div className="h-5 w-20 bg-gray-200 rounded-lg" /></div>
-                  <div className="h-[40px] space-y-1.5"><div className="h-3 w-full bg-gray-200 rounded" /><div className="h-3 w-3/4 bg-gray-200 rounded" /></div>
-                  <div className="flex items-center mt-1"><div className="w-2 h-2 rounded-full bg-gray-200 mr-2" /><div className="h-3 w-16 bg-gray-200 rounded" /></div>
-                  <div className="flex items-end justify-between mt-2"><div className="space-y-1"><div className="h-3 w-12 bg-gray-200 rounded" /><div className="h-4 w-16 bg-gray-300 rounded" /></div><div className="h-8 w-16 bg-gray-200 rounded" /></div>
+                  <div className="mb-1">
+                    <div className="h-5 w-20 bg-gray-200 rounded-lg" />
+                  </div>
+                  <div className="h-[40px] space-y-1.5">
+                    <div className="h-3 w-full bg-gray-200 rounded" />
+                    <div className="h-3 w-3/4 bg-gray-200 rounded" />
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <div className="w-2 h-2 rounded-full bg-gray-200 mr-2" />
+                    <div className="h-3 w-16 bg-gray-200 rounded" />
+                  </div>
+                  <div className="flex items-end justify-between mt-2">
+                    <div className="space-y-1">
+                      <div className="h-3 w-12 bg-gray-200 rounded" />
+                      <div className="h-4 w-16 bg-gray-300 rounded" />
+                    </div>
+                    <div className="h-8 w-16 bg-gray-200 rounded" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -132,7 +142,10 @@ export default function HomePage() {
         <div ref={infiniteScrollTrigger} className="h-20 flex justify-center items-center">
           {loading && currentPage > 1 && (
             <div className="flex items-center">
-              <Icon icon="mingcute:loading-line" className="h-10 w-10 animate-spin text-[#388072]" />
+              <Icon
+                icon="mingcute:loading-line"
+                className="h-10 w-10 animate-spin text-[#388072]"
+              />
               <span className="ml-2">Loading more products...</span>
             </div>
           )}
