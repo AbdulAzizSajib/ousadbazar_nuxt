@@ -95,7 +95,7 @@ export default function HomePage() {
       <div className="mt-6 bg-gradient-to-b from-[#FFFFFF] to-[#EAEBF4] shadow-lg border-t border-gray-200  rounded-lg  border">
         <div className="flex flex-wrap md:flex-nowrap items-center">
           <div className="w-1/2 md:flex-1 flex items-center gap-3 px-10 py-10">
-            <Icon icon="mdi:truck-fast" className="text-yellow-400 shrink-0" width={40} height={40} />
+            <Icon icon="mdi:truck-fast" className="text-[#5360a7] shrink-0" width={40} height={40} />
             <div>
               <h3 className="font-bold text-gray-800 text-sm md:text-base">Quick Delivery</h3>
               <p className="text-xs md:text-sm text-gray-500">Within 6 Hours in Dhaka City</p>
@@ -103,7 +103,7 @@ export default function HomePage() {
           </div>
           <div className="hidden md:block border-l border-slate-300 h-20" />
           <div className="w-1/2 md:flex-1 flex items-center gap-3 px-4 py-4">
-            <Icon icon="solar:phone-calling-bold" className="text-green-500 shrink-0" width={40} height={40} />
+            <Icon icon="solar:phone-calling-bold" className="text-[#5360a7] shrink-0" width={40} height={40} />
             <div>
               <h3 className="font-bold text-gray-800 text-sm md:text-base">24/7 Hour Service</h3>
               <p className="text-xs md:text-sm text-gray-500">Pharmacists On Call 24/7</p>
@@ -111,7 +111,7 @@ export default function HomePage() {
           </div>
           <div className="hidden md:block border-l border-slate-300 h-20" />
           <div className="w-1/2 md:flex-1 flex items-center gap-3 px-4 py-4">
-            <Icon icon="mdi:currency-bdt" className="text-blue-500 shrink-0 border-2 border-blue-500 rounded-full p-1" width={40} height={40} />
+            <Icon icon="mdi:currency-bdt" className="text-[#5360a7] shrink-0 border-2 border-[#5360a7] rounded-full p-1" width={40} height={40} />
             <div>
               <h3 className="font-bold text-gray-800 text-sm md:text-base">Affordable Prices</h3>
               <p className="text-xs md:text-sm text-gray-500">Buy At Low Price And Avail Discount</p>
@@ -119,7 +119,7 @@ export default function HomePage() {
           </div>
           <div className="hidden md:block border-l border-slate-300 h-20" />
           <div className="w-1/2 md:flex-1 flex items-center gap-3 px-4 py-4">
-            <Icon icon="mdi:clipboard-text-outline" className="text-amber-600 shrink-0" width={40} height={40} />
+            <Icon icon="mdi:clipboard-text-outline" className="text-[#5360a7]  shrink-0" width={40} height={40} />
             <div>
               <h3 className="font-bold text-gray-800 text-sm md:text-base">E-Prescription</h3>
               <p className="text-xs md:text-sm text-gray-500">E-Prescription Facility Through My Health</p>
@@ -148,7 +148,7 @@ export default function HomePage() {
             ].map((s) => (
               <div
                 key={s.step}
-                className={`relative flex items-center gap-3 px-4 py-4 rounded-lg bg-gradient-to-br ${s.card} border border-white/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all`}
+                className={`relative flex items-center gap-3 px-4 py-4 rounded-lg bg-gradient-to-br ${s.card} border  `}
               >
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${s.iconBg} flex items-center justify-center shadow-md shrink-0 ring-2 ring-white`}>
                   <Icon icon={s.icon} className="text-white" width={26} height={26} />

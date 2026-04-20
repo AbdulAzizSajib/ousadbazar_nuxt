@@ -12,8 +12,8 @@ export type CarouselSlide = {
 
 const defaultSlides: CarouselSlide[] = [
   { id: 4, image: '/carousel/banner-4.webp', alt: 'Banner 4' },
-  { id: 5, image: '/carousel/Banner-5.webp', alt: 'Banner 5' },
-  { id: 6, image: '/carousel/Banner-6.webp', alt: 'Banner 6' },
+  // { id: 5, image: '/carousel/Banner-5.webp', alt: 'Banner 5' },
+  // { id: 6, image: '/carousel/Banner-6.webp', alt: 'Banner 6' },
 ];
 
 interface HeroCarouselProps {
