@@ -48,6 +48,7 @@ export interface Product {
   pack_size?: { id: string; quantity: number };
   packsize_quantity?: number; // ← এটা add করো
   packsize_name?: string; // ← এটা add করো
+  stripe_qty?: number | string; // pieces per strip (0/undefined = sell per piece)
 }
 
 export interface CartProduct extends Product {
@@ -58,6 +59,8 @@ export interface CartProduct extends Product {
   total_price: number;
   total_previous_price: number;
   selectedQuantity: number;
+  piecesPerUnit?: number;
+  unitLabel?: string;
 }
 
 export interface OrderProduct {

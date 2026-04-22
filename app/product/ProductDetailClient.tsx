@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Dropdown } from "antd";
 import { Icon } from "@iconify/react";
 import { imgBasePharma, asset } from "@/lib/config";
 import { useCartStore } from "@/stores/cartStore";
 import { useProduct } from "@/lib/hooks/useProducts";
+import { getUnitInfo } from "@/lib/unitUtils";
 import type { Product } from "@/types";
 
 interface ProductDetailClientProps {
@@ -16,8 +16,6 @@ interface ProductDetailClientProps {
 export default function ProductDetailClient({ id }: ProductDetailClientProps) {
   const { data: productDetail, isLoading: loading } = useProduct(id);
   const getCart = useCartStore((s) => s.getCart);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [calculatedItems, setCalculatedItems] = useState<{ index: number; quantity: number }[]>([]);
   const [activeTab, setActiveTab] = useState<"description" | "details" | "faq">("description");
   const [zoomed, setZoomed] = useState(false);
   const [loadingItemId, setLoadingItemId] = useState<string | number | null>(null);
@@ -26,124 +24,9 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
   const stockQty = (item: Record<string, unknown> | null | undefined) =>
     parseFloat(String(item?.balanced_quantity || 0));
 
-  const packQty = productDetail?.quantity || 1;
-  const packPrice = Number(productDetail?.ecom_final_selling_price || productDetail?.selling_price || 0);
-  const finalPrice = packPrice / Number(packQty);
-  const perPieceSellingPrice = Number(productDetail?.selling_price || 0) / Number(packQty);
-  const hasDiscount = false; // Will be calculated after loading
-  const discountPct = 0; // Will be calculated after loading
-  const totalPrice = (quantity * finalPrice).toFixed(2);
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const newQty = 1;
-    setQuantity(newQty);
-    setLoadingItemId(id);
-    try {
-      if (productDetail) {
-        const normalizedProduct: Product = {
-          ...productDetail,
-          id: productDetail.id as number,
-          name: productDetail.name as string,
-          product_prices: {
-            selling_price: Number(productDetail.selling_price || 0),
-            ecom_final_selling_price: Number(
-              productDetail.ecom_final_selling_price || productDetail.selling_price || 0
-            ),
-            ecom_discount_percentage: (productDetail.ecom_discount_percentage as number) || null,
-            pack_quantity: Number(productDetail.quantity || 1),
-          },
-          stock_batches: (productDetail.stock_batches as { balanced_quantity: number }[]) || [
-            { balanced_quantity: Number(productDetail.balanced_quantity || 0) },
-          ],
-          product_images:
-            (productDetail.product_images as { path: string }[]) ||
-            (productDetail.path ? [{ path: productDetail.path as string }] : []),
-        };
-        getCart(normalizedProduct, newQty, newQty);
-      }
-    } finally {
-      setLoadingItemId(null);
-    }
-  };
-
-  const handleIncrease = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (quantity >= stock) return;
-    const newQty = quantity + 1;
-    setQuantity(newQty);
-    if (productDetail) {
-      const normalizedProduct: Product = {
-        ...productDetail,
-        id: productDetail.id as number,
-        name: productDetail.name as string,
-        product_prices: {
-          selling_price: Number(productDetail.selling_price || 0),
-          ecom_final_selling_price: Number(
-            productDetail.ecom_final_selling_price || productDetail.selling_price || 0
-          ),
-          ecom_discount_percentage: (productDetail.ecom_discount_percentage as number) || null,
-          pack_quantity: Number(productDetail.quantity || 1),
-        },
-        stock_batches: (productDetail.stock_batches as { balanced_quantity: number }[]) || [
-          { balanced_quantity: Number(productDetail.balanced_quantity || 0) },
-        ],
-        product_images:
-          (productDetail.product_images as { path: string }[]) ||
-          (productDetail.path ? [{ path: productDetail.path as string }] : []),
-      };
-      getCart(normalizedProduct, newQty, newQty);
-    }
-  };
-
-  const handleDecrease = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (quantity <= 1) {
-      setQuantity(0);
-      return;
-    }
-    const newQty = quantity - 1;
-    setQuantity(newQty);
-    if (productDetail) {
-      const normalizedProduct: Product = {
-        ...productDetail,
-        id: productDetail.id as number,
-        name: productDetail.name as string,
-        product_prices: {
-          selling_price: Number(productDetail.selling_price || 0),
-          ecom_final_selling_price: Number(
-            productDetail.ecom_final_selling_price || productDetail.selling_price || 0
-          ),
-          ecom_discount_percentage: (productDetail.ecom_discount_percentage as number) || null,
-          pack_quantity: Number(productDetail.quantity || 1),
-        },
-        stock_batches: (productDetail.stock_batches as { balanced_quantity: number }[]) || [
-          { balanced_quantity: Number(productDetail.balanced_quantity || 0) },
-        ],
-        product_images:
-          (productDetail.product_images as { path: string }[]) ||
-          (productDetail.path ? [{ path: productDetail.path as string }] : []),
-      };
-      getCart(normalizedProduct, newQty, newQty);
-    }
-  };
-
-  const handleDropdownClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDropdownOpen(false);
-    const items = [];
-    const maxPacks = Math.floor(stockQty(productDetail) / (Number(productDetail?.quantity) || 1));
-    for (let i = 1; i <= maxPacks; i++) {
-      items.push({ index: i, quantity: i * (Number(productDetail?.quantity) || 1) });
-    }
-    setCalculatedItems(items);
-    setDropdownOpen(true);
-  };
-
-  const handleAddToCart = (quantity: number, index: number) => {
-    if (!productDetail) return;
-    const normalizedProduct: Product = {
+  const buildNormalizedProduct = (): Product | null => {
+    if (!productDetail) return null;
+    return {
       ...productDetail,
       id: productDetail.id as number,
       name: productDetail.name as string,
@@ -155,6 +38,8 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
         ecom_discount_percentage: (productDetail.ecom_discount_percentage as number) || null,
         pack_quantity: Number(productDetail.quantity || 1),
       },
+      packsize_quantity: Number(productDetail.quantity || 1),
+      stripe_qty: productDetail?.stripe_qty,
       stock_batches: (productDetail.stock_batches as { balanced_quantity: number }[]) || [
         { balanced_quantity: Number(productDetail.balanced_quantity || 0) },
       ],
@@ -162,9 +47,58 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
         (productDetail.product_images as { path: string }[]) ||
         (productDetail.path ? [{ path: productDetail.path as string }] : []),
     };
-    setQuantity(quantity);
-    getCart(normalizedProduct, quantity, index);
-    setDropdownOpen(false);
+  };
+
+  const unit = getUnitInfo(buildNormalizedProduct());
+  const finalPrice = unit.unitPrice;
+  const perUnitSellingPrice = unit.unitSellingPrice;
+  const hasDiscount = perUnitSellingPrice > finalPrice;
+  const discountPct = hasDiscount
+    ? Math.round(((perUnitSellingPrice - finalPrice) / perUnitSellingPrice) * 100)
+    : 0;
+  const totalPrice = (quantity * finalPrice).toFixed(2);
+  const stripLabel = String(productDetail?.category_name || unit.unitLabelPlural);
+  const selectedPieces = quantity * unit.piecesPerUnit;
+  const stripCountLabel = quantity > 1 ? "strips" : "strip";
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const newQty = 1;
+    setQuantity(newQty);
+    setLoadingItemId(id);
+    try {
+      const normalizedProduct = buildNormalizedProduct();
+      if (normalizedProduct) {
+        getCart(normalizedProduct, newQty, newQty * unit.piecesPerUnit);
+      }
+    } finally {
+      setLoadingItemId(null);
+    }
+  };
+
+  const handleIncrease = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (quantity >= unit.unitStock) return;
+    const newQty = quantity + 1;
+    setQuantity(newQty);
+    const normalizedProduct = buildNormalizedProduct();
+    if (normalizedProduct) {
+      getCart(normalizedProduct, newQty, newQty * unit.piecesPerUnit);
+    }
+  };
+
+  const handleDecrease = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (quantity <= 1) {
+      setQuantity(0);
+      return;
+    }
+    const newQty = quantity - 1;
+    setQuantity(newQty);
+    const normalizedProduct = buildNormalizedProduct();
+    if (normalizedProduct) {
+      getCart(normalizedProduct, newQty, newQty * unit.piecesPerUnit);
+    }
   };
 
   const productName = String(productDetail?.name || "");
@@ -277,35 +211,12 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
     );
   }
 
-  const stock = stockQty(productDetail);
+  const stock = unit.unitStock;
   const imageSrc = productDetail?.path
     ? `${imgBasePharma}/${productDetail.path}`
     : asset("/images/default.jpg");
 
-  const sellingPrice = Number(productDetail?.selling_price || 0);
-  const tp = Number(productDetail?.tp || 0);
-  const hasDiscountTp = tp > sellingPrice;
-  const discountPctTp = hasDiscountTp ? Math.round(((tp - sellingPrice) / tp) * 100) : 0;
-
-  const menuItems = calculatedItems.map((item) => ({
-    key: item.index,
-    label: (
-      <span className="text-xs">
-        ({item.index} {String(productDetail?.packsize || "")}){" "}
-        {String(productDetail?.category_name || "")
-          .toLowerCase()
-          .includes("cap") ||
-        String(productDetail?.category_name || "")
-          .toLowerCase()
-          .includes("tab")
-          ? Number(productDetail?.quantity || 0) * item.index
-          : Number(productDetail?.quantity || 0)}{" "}
-        {String(productDetail?.category_name || "")} - ৳
-        {Number(item.index * sellingPrice * Number(productDetail?.quantity || 1)).toFixed(2)}
-      </span>
-    ),
-    onClick: () => handleAddToCart(item.quantity, item.index),
-  }));
+  const sellingPrice = finalPrice;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -353,9 +264,9 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                   <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur border border-gray-200 rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Icon icon="mdi:magnify-plus-outline" className="w-4 h-4 text-gray-600" />
                   </div>
-                  {hasDiscountTp && (
+                  {hasDiscount && (
                     <span className="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-md">
-                      -{discountPctTp}% OFF
+                      -{discountPct}% OFF
                     </span>
                   )}
                   <span
@@ -435,16 +346,16 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
 
               {/* Price */}
               <div className="mb-5">
-                <p className="text-xs text-gray-500 mb-1">প্রতি ইউনিট মূল্য / Price per unit</p>
+                <p className="text-xs text-gray-500 mb-1">প্রতি ইউনিট মূল্য / Price per strip</p>
                 <div className="flex items-baseline flex-wrap gap-3">
                   <span className="text-3xl md:text-4xl font-bold text-[#012068]">
                     ৳{sellingPrice.toFixed(2)}
                   </span>
-                  {hasDiscountTp && (
+                  {hasDiscount && (
                     <>
-                      <span className="text-lg text-gray-400 line-through">৳{tp.toFixed(2)}</span>
+                      <span className="text-lg text-gray-400 line-through">৳{perUnitSellingPrice.toFixed(2)}</span>
                       <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-md border border-red-100">
-                        Save {discountPctTp}%
+                        Save {discountPct}%
                       </span>
                     </>
                   )}
@@ -468,8 +379,7 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                   <div className="min-w-0">
                     <p className="text-[11px] text-gray-500">Availability</p>
                     <p className="font-semibold text-gray-900 text-sm">
-                      {stock}{" "}
-                      <span className="text-xs font-normal text-gray-500">units</span>
+                      {stock} <span className="text-xs font-normal text-gray-500">{unit.unitLabelPlural}</span>
                     </p>
                   </div>
                 </div>
@@ -487,30 +397,22 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
               {/* CTA buttons */}
               <div className="flex gap-3 mb-5">
                 {quantity === 0 ? (
-                  // Add to cart button
-                  <Dropdown
-                    menu={{ items: menuItems }}
-                    trigger={["click"]}
-                    open={dropdownOpen}
-                    onOpenChange={setDropdownOpen}
+                  <button
+                    className={`flex-1 border text-[#012068] hover:text-white border-[#012068] hover:bg-[#012068]/80 py-3.5 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm active:scale-[0.98] ${
+                      stock < 1 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    disabled={stock < 1}
+                    onClick={handleAdd}
                   >
-                    <button
-                      className={`flex-1 bg-[#012068] hover:bg-[#012068]/80 py-3.5 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-md shadow-[#012068]/20 active:scale-[0.98] ${
-                        stock < 1 ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={stock < 1}
-                      onClick={handleAdd}
-                    >
-                      {loadingItemId === id ? (
-                        <Icon className="w-5 h-5 animate-spin" icon="mingcute:loading-line" />
-                      ) : (
-                        <>
-                          <Icon icon="solar:cart-plus-bold" className="w-5 h-5" />
-                          <span>Add To Cart</span>
-                        </>
-                      )}
-                    </button>
-                  </Dropdown>
+                    {loadingItemId === id ? (
+                      <Icon className="w-5 h-5 animate-spin" icon="mingcute:loading-line" />
+                    ) : (
+                      <>
+                        <Icon icon="solar:cart-plus-bold" className="w-5 h-5" />
+                        <span>Add To Cart</span>
+                      </>
+                    )}
+                  </button>
                 ) : (
                   // Counter + price
                   <div className="flex-1 flex flex-col gap-1">
@@ -529,8 +431,10 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                       >
                         <Icon icon="tdesign:minus" className="w-4 h-4" />
                       </button>
-                      <span className="flex-1 text-center text-lg font-medium text-gray-800">
-                        {quantity}
+                      <span className="flex-1 px-1 text-center text-sm font-medium leading-tight text-gray-800">
+                        {unit.sellsByStrip
+                          ? `${selectedPieces} ${stripLabel} (${quantity} ${stripCountLabel})`
+                          : `${quantity} ${unit.unitLabelPlural}`}
                       </span>
                       <button
                         onClick={handleIncrease}
@@ -542,12 +446,7 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                     </div>
                   </div>
                 )}
-                <button
-                  className="w-12 h-12 bg-white border border-gray-200 hover:border-[#012068] hover:text-[#012068] rounded-xl transition-colors flex items-center justify-center text-gray-600"
-                  aria-label="Add to wishlist"
-                >
-                  <Icon icon="mdi:heart-outline" className="w-5 h-5" />
-                </button>
+
                 <button
                   className="w-12 h-12 bg-white border border-gray-200 hover:border-[#012068] hover:text-[#012068] rounded-xl transition-colors flex items-center justify-center text-gray-600"
                   aria-label="Share"

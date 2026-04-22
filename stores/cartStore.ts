@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { showNotification } from '@/lib/notification';
+import { getUnitInfo } from '@/lib/unitUtils';
 import type { CartProduct, Product } from '@/types';
 
 interface CartState {
@@ -57,29 +58,14 @@ export const useCartStore = create<CartState>()(
           };
         }
 
-        // per piece price calculation
-        const packQty = Number(
-          normalizedProduct?.packsize_quantity ||
-            normalizedProduct?.product_prices?.pack_quantity ||
-            1
-        );
-        const packPrice = Number(
-          normalizedProduct?.product_prices?.ecom_final_selling_price ||
-            normalizedProduct?.selling_price ||
-            0
-        );
-        const price = packPrice / packQty; // ৳525 / 30 = ৳17.50 per piece
-
-        const actual_price = Number(
-          normalizedProduct?.product_prices?.selling_price || normalizedProduct?.selling_price || 0
-        );
-        const perPieceActualPrice = actual_price / packQty;
-        const total_previous_price = perPieceActualPrice * quantity;
+        // unit-based price (strip or piece)
+        const unit = getUnitInfo(normalizedProduct);
+        const price = unit.unitPrice;
+        const total_previous_price = unit.unitSellingPrice * quantity;
 
         const index = cartProduct.findIndex((item) => item?.id == normalizedProduct?.id);
 
         if (index !== -1) {
-          // showNotification('info', `${normalizedProduct?.name} updated in cart!`);
           const updatedCart = [...cartProduct];
           updatedCart[index] = {
             ...updatedCart[index],
@@ -90,6 +76,8 @@ export const useCartStore = create<CartState>()(
             total_price: price * quantity,
             total_previous_price,
             selectedQuantity: quantity,
+            piecesPerUnit: unit.piecesPerUnit,
+            unitLabel: unit.unitLabel,
           };
           set({ cartProduct: updatedCart });
         } else {
@@ -102,6 +90,8 @@ export const useCartStore = create<CartState>()(
             total_price: price * quantity,
             total_previous_price,
             selectedQuantity: quantity,
+            piecesPerUnit: unit.piecesPerUnit,
+            unitLabel: unit.unitLabel,
           } as CartProduct;
           set({ cartProduct: [newItem, ...cartProduct] });
           showNotification('success', `${normalizedProduct?.name} added to cart!`);

@@ -4,7 +4,7 @@ import { Drawer, Popconfirm } from 'antd';
 import { Icon } from '@iconify/react';
 import { useCartStore } from '@/stores/cartStore';
 import { formatNumber, imgBasePharma, asset } from '@/lib/config';
-import { calculateStock } from '@/lib/stockUtils';
+import { getUnitInfo } from '@/lib/unitUtils';
 import { useRouter, usePathname } from 'next/navigation';
 import type { CartProduct } from '@/types';
 
@@ -30,27 +30,22 @@ export default function CartDrawer({ visible, onClose }: CartDrawerProps) {
   };
 
   const handleIncrease = (product: CartProduct, index: number) => {
-    const stock = calculateStock(product);
+    const unit = getUnitInfo(product);
     const currentQty = product.quantity || 1;
-    if (currentQty >= stock) return;
+    if (currentQty >= unit.unitStock) return;
 
     const newQty = currentQty + 1;
-    const packQty = Number(
-      product?.packsize_quantity || product?.product_prices?.pack_quantity || 1
-    );
-    const packPrice = Number(
-      product?.product_prices?.ecom_final_selling_price || product?.selling_price || 0
-    );
-    const perPiecePrice = packPrice / packQty;
-
     const updatedCart = [...cartProduct];
     updatedCart[index] = {
       ...updatedCart[index],
       quantity: newQty,
       total_quantity: newQty,
       selectedQuantity: newQty,
-      price: perPiecePrice,
-      total_price: perPiecePrice * newQty,
+      singleQty: newQty * unit.piecesPerUnit,
+      price: unit.unitPrice,
+      total_price: unit.unitPrice * newQty,
+      piecesPerUnit: unit.piecesPerUnit,
+      unitLabel: unit.unitLabel,
     };
     useCartStore.setState({ cartProduct: updatedCart });
     calculateTotal();
@@ -63,23 +58,19 @@ export default function CartDrawer({ visible, onClose }: CartDrawerProps) {
       return;
     }
 
+    const unit = getUnitInfo(product);
     const newQty = currentQty - 1;
-    const packQty = Number(
-      product?.packsize_quantity || product?.product_prices?.pack_quantity || 1
-    );
-    const packPrice = Number(
-      product?.product_prices?.ecom_final_selling_price || product?.selling_price || 0
-    );
-    const perPiecePrice = packPrice / packQty;
-
     const updatedCart = [...cartProduct];
     updatedCart[index] = {
       ...updatedCart[index],
       quantity: newQty,
       total_quantity: newQty,
       selectedQuantity: newQty,
-      price: perPiecePrice,
-      total_price: perPiecePrice * newQty,
+      singleQty: newQty * unit.piecesPerUnit,
+      price: unit.unitPrice,
+      total_price: unit.unitPrice * newQty,
+      piecesPerUnit: unit.piecesPerUnit,
+      unitLabel: unit.unitLabel,
     };
     useCartStore.setState({ cartProduct: updatedCart });
     calculateTotal();
@@ -147,17 +138,15 @@ export default function CartDrawer({ visible, onClose }: CartDrawerProps) {
           <div className="flex-1 overflow-y-auto px-5 py-4 bg-gradient-to-b from-gray-50/60 to-white">
             <ul className="space-y-3">
               {cartProduct.map((product, index) => {
-                const stock = calculateStock(product);
+                const unit = getUnitInfo(product);
+                const stock = unit.unitStock;
                 const qty = product.quantity || 1;
-                const packQty = Number(
-                  product?.packsize_quantity || product?.product_prices?.pack_quantity || 1
-                );
-                const packPrice = Number(
-                  product?.product_prices?.ecom_final_selling_price || product?.selling_price || 0
-                );
-                const perPiecePrice = packPrice / packQty;
-                const totalItemPrice = perPiecePrice * qty;
+                const perUnitPrice = unit.unitPrice;
+                const totalItemPrice = perUnitPrice * qty;
                 const isLowStock = stock > 0 && stock <= 5;
+                const stripLabel = product?.category_name || unit.unitLabelPlural;
+                const selectedPieces = qty * unit.piecesPerUnit;
+                const stripCountLabel = qty > 1 ? 'strips' : 'strip';
 
                 return (
                   <li
@@ -223,19 +212,24 @@ export default function CartDrawer({ visible, onClose }: CartDrawerProps) {
 
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           <span className="text-[11px] text-gray-500 font-medium">
-                            ৳{perPiecePrice.toFixed(2)}
-                            <span className="text-gray-400 font-normal">/pcs</span>
+                            ৳{perUnitPrice.toFixed(2)}
+                            <span className="text-gray-400 font-normal">/{unit.unitLabel}</span>
                           </span>
                           <span className="w-1 h-1 rounded-full bg-gray-300" />
                           {isLowStock ? (
                             <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md">
                               <Icon icon="mdi:alert-circle" className="w-3 h-3" />
-                              Only {stock} left
+                              Only {stock} {unit.unitLabelPlural} left
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                               <Icon icon="mdi:check-circle" className="w-3 h-3" />
                               In stock
+                            </span>
+                          )}
+                          {unit.sellsByStrip && (
+                            <span className="text-[10px] text-gray-400">
+                              ({qty} × {unit.piecesPerUnit} = {qty * unit.piecesPerUnit} pcs)
                             </span>
                           )}
                         </div>
@@ -254,8 +248,10 @@ export default function CartDrawer({ visible, onClose }: CartDrawerProps) {
                                 className="h-3.5 w-3.5"
                               />
                             </button>
-                            <span className="w-9 text-center text-[13px] font-bold text-gray-800 tabular-nums">
-                              {qty}
+                            <span className="px-1 min-w-[130px] text-center text-[10px] font-medium leading-tight text-gray-800">
+                              {unit.sellsByStrip
+                                ? `${selectedPieces} ${stripLabel} (${qty} ${stripCountLabel})`
+                                : `${qty} ${unit.unitLabelPlural}`}
                             </span>
                             <button
                               onClick={() => handleIncrease(product, index)}

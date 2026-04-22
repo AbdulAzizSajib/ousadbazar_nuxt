@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { useCartStore } from '@/stores/cartStore';
 import { formatNumber, imgBasePharma, asset } from '@/lib/config';
-import { stockQuantity } from '@/lib/stockUtils';
+import { getUnitInfo } from '@/lib/unitUtils';
 import type { Product } from '@/types';
 import Image from 'next/image';
 
@@ -18,21 +18,19 @@ export default function ProductCard({ item }: ProductCardProps) {
   const [loadingItemId, setLoadingItemId] = useState<string | number | null>(null);
   const [quantity, setQuantity] = useState(0); // 0 = not added yet
 
-  const stock = stockQuantity(item);
-  const packQty = item?.packsize_quantity || item?.product_prices?.pack_quantity || 1;
-  const packPrice = Number(
-    item?.product_prices?.ecom_final_selling_price || item?.selling_price || 0
-  );
-  const finalPrice = packPrice / Number(packQty);
-
-  const sellingPrice = Number(item?.product_prices?.selling_price || item?.selling_price || 0);
-  const perPieceSellingPrice = sellingPrice / Number(packQty);
-  const hasDiscount = perPieceSellingPrice > finalPrice;
+  const unit = getUnitInfo(item);
+  const stock = unit.unitStock;
+  const finalPrice = unit.unitPrice;
+  const perUnitSellingPrice = unit.unitSellingPrice;
+  const hasDiscount = perUnitSellingPrice > finalPrice;
   const discountPct = hasDiscount
-    ? Math.round(((perPieceSellingPrice - finalPrice) / perPieceSellingPrice) * 100)
+    ? Math.round(((perUnitSellingPrice - finalPrice) / perUnitSellingPrice) * 100)
     : 0;
   const categoryName = item?.category?.name || item?.category_name || '';
+  const stripLabel = item?.category_name || unit.unitLabelPlural;
   const totalPrice = (quantity * finalPrice).toFixed(2);
+  const selectedPieces = quantity * unit.piecesPerUnit;
+  const stripCountLabel = quantity > 1 ? 'strips' : 'strip';
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -40,7 +38,7 @@ export default function ProductCard({ item }: ProductCardProps) {
     setQuantity(newQty);
     setLoadingItemId(item.id);
     try {
-      getCart(item, newQty, newQty);
+      getCart(item, newQty, newQty * unit.piecesPerUnit);
     } finally {
       setLoadingItemId(null);
     }
@@ -51,7 +49,7 @@ export default function ProductCard({ item }: ProductCardProps) {
     if (quantity >= stock) return;
     const newQty = quantity + 1;
     setQuantity(newQty);
-    getCart(item, newQty, newQty);
+    getCart(item, newQty, newQty * unit.piecesPerUnit);
   };
 
   const handleDecrease = (e: React.MouseEvent) => {
@@ -62,7 +60,7 @@ export default function ProductCard({ item }: ProductCardProps) {
     }
     const newQty = quantity - 1;
     setQuantity(newQty);
-    getCart(item, newQty, newQty);
+    getCart(item, newQty, newQty * unit.piecesPerUnit);
   };
 
   return (
@@ -93,14 +91,15 @@ export default function ProductCard({ item }: ProductCardProps) {
       </Link>
 
       {/* Body */}
-      <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2.5">
+      <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2.5 border">
         <Link href={`/product?id=${item?.id}`} className="block">
           <h3
-            className="line-clamp-2 min-h-[36px] text-[13px] font-medium leading-snug text-gray-800 dark:text-gray-100"
+            className="line-clamp-2 min-h-[36px]  text-[13px] font-medium leading-snug text-gray-800 dark:text-gray-100"
             title={item?.name}
           >
-            {item?.name}
+            {item?.name} 
           </h3>
+        
 
           <div className="mt-1.5 flex items-center gap-1.5">
             <span
@@ -109,20 +108,24 @@ export default function ProductCard({ item }: ProductCardProps) {
             <span
               className={`text-[11px] ${stock > 0 ? 'text-gray-400 dark:text-gray-500' : 'text-red-500 dark:text-red-400'}`}
             >
-              {stock > 0 ? `In stock (${formatNumber(stock)})` : 'Out of stock'}
+              {stock > 0
+                ? `In stock (${formatNumber(stock)} ${unit.unitLabelPlural})`
+                : 'Out of stock'}
             </span>
           </div>
 
+          
+          {unit.sellsByStrip && (
+            <div className="mt-0.5 text-sm  ">
+              {/* 1 strip = {unit.piecesPerUnit} pcs */}
+              {unit.piecesPerUnit} {stripLabel} (1 strip)
+            </div>
+          )}
+
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-mono text-[15px] font-medium tabular-nums tracking-tight text-gray-900 dark:text-gray-100">
-              ৳{finalPrice.toFixed(2)}
+            <span className="font-mono text-[15px] font-semibold tabular-nums tracking-tight text-gray-900 dark:text-gray-100">
+              ৳ {finalPrice.toFixed(2)}
             </span>
-            {hasDiscount && (
-              <span className="font-mono text-[11px] tabular-nums text-gray-400 line-through dark:text-gray-500">
-                ৳{perPieceSellingPrice.toFixed(2)}
-              </span>
-            )}
-            <span className="text-[10px] text-gray-400">/pcs</span>
           </div>
         </Link>
 
@@ -169,8 +172,8 @@ export default function ProductCard({ item }: ProductCardProps) {
                 >
                   <Icon icon="tdesign:minus" className="h-3.5 w-3.5" />
                 </button>
-                <span className="flex-1 text-center text-[13px] font-medium text-gray-800 dark:text-gray-100">
-                  {quantity}
+                <span className="flex-1 px-1 text-center text-[11px] font-medium leading-tight text-gray-800 dark:text-gray-100">
+                  {selectedPieces} {stripLabel} ({quantity} {stripCountLabel})
                 </span>
                 <button
                   onClick={handleIncrease}
