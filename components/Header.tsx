@@ -156,23 +156,25 @@ export default function Header({
                 {isSearchPage ? (
                   <div className="flex items-center bg-[#f1f5f7] border rounded-xl overflow-hidden shadow-sm">
                     <div className="pl-4">
-                      {!searchStore.searchLoading ? (
-                        <Icon icon="mingcute:search-line" className="text-primary w-5 h-5" />
-                      ) : (
-                        <Icon icon="ep:loading" className="text-primary w-5 h-5 animate-spin" />
-                      )}
+                      <Icon icon="mingcute:search-line" className="text-primary w-5 h-5" />
                     </div>
                     <input
                       ref={navSearchInput}
                       type="text"
                       value={searchStore.searchQuery}
-                      onChange={(e) => searchStore.search(e.target.value)}
+                      onChange={(e) => {
+                        searchStore.search(e.target.value);
+                        router.replace(`/search?q=${encodeURIComponent(e.target.value)}`);
+                      }}
                       placeholder="Search for medicine, brand, symptom..."
                       className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
                     />
                     {searchStore.searchQuery && (
                       <button
-                        onClick={() => searchStore.clearSearch()}
+                        onClick={() => {
+                          searchStore.clearSearch();
+                          router.replace('/search');
+                        }}
                         type="button"
                         className="px-3"
                       >
@@ -330,25 +332,28 @@ export default function Header({
           {isSearchPage ? (
             <div className="flex items-center bg-white border-2 border-[#388072] rounded-full overflow-hidden shadow-sm">
               <div className="pl-4">
-                {!searchStore.searchLoading ? (
-                  <Icon icon="mingcute:search-line" className="text-[#388072] w-[18px] h-[18px]" />
-                ) : (
-                  <Icon
-                    icon="ep:loading"
-                    className="text-[#388072] w-[18px] h-[18px] animate-spin"
-                  />
-                )}
+                <Icon icon="mingcute:search-line" className="text-[#388072] w-[18px] h-[18px]" />
               </div>
               <input
                 ref={mobileSearchInput}
                 type="text"
                 value={searchStore.searchQuery}
-                onChange={(e) => searchStore.search(e.target.value)}
+                onChange={(e) => {
+                  searchStore.search(e.target.value);
+                  router.replace(`/search?q=${encodeURIComponent(e.target.value)}`);
+                }}
                 placeholder="Search medicines..."
                 className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400"
               />
               {searchStore.searchQuery && (
-                <button onClick={() => searchStore.clearSearch()} type="button" className="px-3">
+                <button
+                  onClick={() => {
+                    searchStore.clearSearch();
+                    router.replace('/search');
+                  }}
+                  type="button"
+                  className="px-3"
+                >
                   <Icon
                     icon="mdi:close-circle"
                     className="text-gray-300 w-[18px] h-[18px] hover:text-gray-500 transition-colors"

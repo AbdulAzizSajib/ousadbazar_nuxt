@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Truck,
@@ -13,68 +13,29 @@ import {
   ArrowRight,
   Loader2,
 } from 'lucide-react';
-import axios from 'axios';
-import { apiBasePharma, formatNumber, imgBasePharma } from '@/lib/config';
-import { useCartStore } from '@/stores/cartStore';
+import { useAllProductsInfinite } from '@/lib/hooks/useInfiniteProducts';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel from '@/components/HeroCarousel';
 import CategoryCarousel from '@/components/CategoryCarousel';
-import type { Product } from '@/types';
 
 export default function HomePage() {
-  const [allProduct, setAllProduct] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const infiniteScrollTrigger = useRef<HTMLDivElement>(null);
-  const pageRef = useRef(1);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useAllProductsInfinite();
 
-  const getAllProduct = useCallback(async () => {
-    if (loading || !hasMore) return;
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        `${apiBasePharma}/products/best-selling-product?page=${pageRef.current}&paginate=20`
-      );
-      if (res.data) {
-        const products: Product[] = (res.data.data || []).map((p: Record<string, unknown>) => ({
-          ...p,
-          category: { name: p.category_name as string },
-          product_prices: {
-            selling_price: p.selling_price as number,
-            ecom_final_selling_price: p.selling_price as number,
-            ecom_discount_percentage: null,
-            pack_quantity: 1,
-            ecom_pack_name: { name: ' Pcs' },
-          },
-          product_images: [],
-          stock_batches: p.stock ? [{ balanced_quantity: p.stock as number }] : [],
-        }));
-        setAllProduct((prev) => (pageRef.current === 1 ? products : [...prev, ...products]));
-        setHasMore(pageRef.current < (res.data.last_page || 1));
-        pageRef.current++;
-        setCurrentPage(pageRef.current);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    getAllProduct();
-  }, []);
+  const allProduct = data?.pages.flatMap((p) => p.products) ?? [];
 
   useEffect(() => {
     if (!infiniteScrollTrigger.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && hasMore) getAllProduct();
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
       },
       { threshold: 0.1 }
     );
     observer.observe(infiniteScrollTrigger.current);
     return () => observer.disconnect();
-  }, [loading, hasMore, getAllProduct]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const websiteSchema = {
     '@context': 'https://schema.org',
@@ -90,18 +51,15 @@ export default function HomePage() {
 
   return (
     <div className="px-3 md:px-0 bg-[#f9fafb]">
-      {/* Website JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
 
-      {/* Hero Carousel */}
       <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2">
-        <HeroCarousel />  
+        <HeroCarousel />
       </div>
 
-      {/* Feature Highlights */}
       <div className="mt-4 md:mt-6 bg-gradient-to-b from-[#FFFFFF] to-[#EAEBF4] shadow-lg border-t border-gray-200 rounded-lg border">
         <div className="flex flex-wrap md:flex-nowrap items-center">
           <div className="w-1/2 md:flex-1 flex items-center gap-2 sm:gap-3 px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6">
@@ -138,7 +96,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* How to Order */}
       <div className="relative mt-4 overflow-hidden rounded-lg shadow-sm border border-gray-200 px-4 py-5 sm:px-6 sm:py-6 md:px-8 md:py-8 bg-gradient-to-br from-white via-[#f4f5f9] to-[#e7e9f5]">
         <span className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-[#012068]/15 to-transparent blur-2xl" />
         <span className="pointer-events-none absolute -bottom-12 -left-10 w-48 h-48 rounded-full bg-gradient-to-tr from-[#7c88c9]/15 to-transparent blur-2xl" />
@@ -176,12 +133,8 @@ export default function HomePage() {
         </div>
       </div>
 
-
-
-      {/* Category Carousel */}
       <CategoryCarousel />
 
-      {/* Best Selling Products Header */}
       <div className="flex items-end justify-between gap-3 mt-10 md:mt-16 mb-5 md:mb-7">
         <div className="flex items-center gap-3">
           <span className="block w-1 h-8 md:h-10 rounded-full bg-gradient-to-b from-[#5360A7] to-[#012068]" />
@@ -205,12 +158,9 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* Products Grid */}
       <div className="mb-3">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-x-2 gap-y-4 capitalize place-items-center md:place-items-start">
-          {/* Skeleton */}
-          {!loading &&
-            currentPage === 1 &&
+          {isLoading &&
             Array.from({ length: 18 }, (_, n) => (
               <div
                 key={`skeleton-${n}`}
@@ -245,15 +195,14 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Infinite Scroll Trigger */}
         <div ref={infiniteScrollTrigger} className="h-16 md:h-20 flex justify-center items-center px-2">
-          {loading && currentPage > 1 && (
+          {isFetchingNextPage && (
             <div className="flex items-center">
               <Loader2 className="h-7 w-7 md:h-10 md:w-10 animate-spin text-[#388072]" />
               <span className="ml-2 text-xs sm:text-sm md:text-base">Loading more products...</span>
             </div>
           )}
-          {!hasMore && allProduct.length > 0 && (
+          {!hasNextPage && allProduct.length > 0 && (
             <div className="text-center text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400">
               You&apos;ve reached the end of the products list.
             </div>
