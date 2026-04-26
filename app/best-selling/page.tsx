@@ -116,7 +116,7 @@ export default function BestSellingIndexPage() {
             <button
               type="button"
               onClick={() => setSelectedSupplierId(null)}
-              className="text-[11px] text-[#388072] hover:text-[#2d6a5a] font-medium"
+              className="text-[11px] text-[#012068] hover:text-[#2d6a5a] font-medium"
             >
               Clear
             </button>
@@ -129,14 +129,14 @@ export default function BestSellingIndexPage() {
           {supplierOptions.map((supplier) => (
             <label
               key={supplier.id}
-              className="flex items-center gap-2.5 text-gray-700 text-sm cursor-pointer hover:text-[#388072]"
+              className="flex items-center gap-2.5 text-gray-700 text-sm cursor-pointer hover:text-[#012068]"
             >
               <input
                 type="radio"
                 name="supplier-filter"
                 checked={selectedSupplierId === supplier.id}
                 onChange={() => setSelectedSupplierId(supplier.id)}
-                className="h-4 w-4 accent-[#388072]"
+                className="h-4 w-4 accent-[#012068]"
               />
               <span className="truncate">{supplier.name}</span>
             </label>
@@ -152,7 +152,7 @@ export default function BestSellingIndexPage() {
             <button
               type="button"
               onClick={() => setSelectedCategoryId(null)}
-              className="text-[11px] text-[#388072] hover:text-[#2d6a5a] font-medium"
+              className="text-[11px] text-[#012068] hover:text-[#2d6a5a] font-medium"
             >
               Clear
             </button>
@@ -168,14 +168,14 @@ export default function BestSellingIndexPage() {
           {categoryOptions.map((category) => (
             <label
               key={category.id}
-              className="flex items-center gap-2.5 text-gray-700 text-sm cursor-pointer hover:text-[#388072]"
+              className="flex items-center gap-2.5 text-gray-700 text-sm cursor-pointer hover:text-[#012068]"
             >
               <input
                 type="radio"
                 name="category-filter"
                 checked={selectedCategoryId === category.id}
                 onChange={() => setSelectedCategoryId(category.id)}
-                className="h-4 w-4 accent-[#388072]"
+                className="h-4 w-4 accent-[#012068]"
               />
               <span className="truncate">{category.name}</span>
             </label>
@@ -194,7 +194,7 @@ export default function BestSellingIndexPage() {
                 setMinPriceInput('');
                 setMaxPriceInput('');
               }}
-              className="text-[11px] text-[#388072] hover:text-[#2d6a5a] font-medium"
+              className="text-[11px] text-[#012068] hover:text-[#2d6a5a] font-medium"
             >
               Clear
             </button>
@@ -216,7 +216,7 @@ export default function BestSellingIndexPage() {
               setMaxPriceInput(max < PRICE_SLIDER_MAX ? String(max) : '');
             }}
             tooltip={{ formatter: (v) => `৳${v}` }}
-            styles={{ track: { backgroundColor: '#388072' }, handle: { borderColor: '#388072' } }}
+            styles={{ track: { backgroundColor: '#012068' }, handle: { borderColor: '#012068' } }}
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -226,7 +226,7 @@ export default function BestSellingIndexPage() {
               value={minPriceInput}
               onChange={(e) => setMinPriceInput(e.target.value)}
               type="number"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#388072] focus:ring-1 focus:ring-[#388072]/20"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#012068] focus:ring-1 focus:ring-[#012068]/20"
               min="0"
               placeholder="0"
             />
@@ -237,7 +237,7 @@ export default function BestSellingIndexPage() {
               value={maxPriceInput}
               onChange={(e) => setMaxPriceInput(e.target.value)}
               type="number"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#388072] focus:ring-1 focus:ring-[#388072]/20"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#012068] focus:ring-1 focus:ring-[#012068]/20"
               min="0"
               placeholder="2000"
             />
@@ -267,7 +267,7 @@ export default function BestSellingIndexPage() {
               {activeFilterCount > 0 && (
                 <button
                   type="button"
-                  className="text-xs text-[#388072] hover:text-[#2d6a5a] font-medium"
+                  className="text-xs text-[#012068] hover:text-[#2d6a5a] font-medium"
                   onClick={clearFilters}
                 >
                   Clear ({activeFilterCount})
@@ -285,12 +285,12 @@ export default function BestSellingIndexPage() {
             <button
               type="button"
               onClick={() => setMobileFilterOpen(true)}
-              className="md:hidden inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-[#388072] hover:text-[#388072] transition-colors relative"
+              className="md:hidden inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-[#012068] hover:text-[#012068] transition-colors relative"
             >
               <Icon icon="mdi:filter-variant" className="w-4 h-4" />
               Filter
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#388072] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 bg-[#012068] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -301,7 +301,7 @@ export default function BestSellingIndexPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-white text-gray-900 border border-gray-200 rounded-lg px-2 py-1 text-sm outline-none focus:border-[#388072]"
+                className="bg-white text-gray-900 border border-gray-200 rounded-lg px-2 py-1 text-sm outline-none focus:border-[#012068]"
               >
                 <option value="asc">Default</option>
                 <option value="desc">Descending</option>
@@ -343,7 +343,7 @@ export default function BestSellingIndexPage() {
                 <div className="flex items-center">
                   <Icon
                     icon="mingcute:loading-line"
-                    className="h-10 w-10 animate-spin text-[#388072]"
+                    className="h-10 w-10 animate-spin text-[#012068]"
                   />
                   <span className="ml-2">Loading more products...</span>
                 </div>
@@ -362,10 +362,10 @@ export default function BestSellingIndexPage() {
       <Drawer
         title={
           <div className="flex items-center gap-2">
-            <Icon icon="mdi:filter-variant" className="w-5 h-5 text-[#388072]" />
+            <Icon icon="mdi:filter-variant" className="w-5 h-5 text-[#012068]" />
             <span className="font-semibold">Filter Medicines</span>
             {activeFilterCount > 0 && (
-              <span className="bg-[#388072] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-[#012068] text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {activeFilterCount}
               </span>
             )}
@@ -388,7 +388,7 @@ export default function BestSellingIndexPage() {
             <button
               type="button"
               onClick={() => setMobileFilterOpen(false)}
-              className="flex-1 bg-[#388072] hover:bg-[#2d6a5a] text-white rounded-lg py-2.5 text-sm font-semibold"
+              className="flex-1 bg-[#012068] hover:bg-[#2d6a5a] text-white rounded-lg py-2.5 text-sm font-semibold"
             >
               Show {filteredProducts.length} Results
             </button>

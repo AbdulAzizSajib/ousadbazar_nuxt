@@ -77,6 +77,7 @@ export const useProductIds = (maxPages: number = 500) => {
   });
 };
 
+<<<<<<< HEAD
 export const useProductsByGeneric = (
   genericId: string | number | undefined | null,
   perPage: number = 10
@@ -109,21 +110,43 @@ export const useProductsByGeneric = (
 };
 
 export const useSearchProducts = (query: string, page: number = 1) => {
+=======
+export const useSearchProducts = (query: string) => {
+>>>>>>> 9b016188ebd8d511209d1317753bf55179963ce5
   return useQuery({
-    queryKey: ["searchProducts", query, page],
+    queryKey: ["searchProducts", query],
     queryFn: async () => {
-      if (!query) return [];
       const res = await axios.get(
-        `${apiBasePharma}/products/search?q=${query}&page=${page}`
+        `${apiBasePharma}/products/search?q=${encodeURIComponent(query)}`
       );
-      const data = Array.isArray(res?.data)
+      const results = Array.isArray(res.data)
         ? res.data
-        : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : [];
-      return data;
+        : res.data?.products || res.data?.data || [];
+
+      return results.map((item: Record<string, unknown>) => {
+        const p = (item._source as Record<string, unknown>) || item;
+        return {
+          id: p.id,
+          name: p.name,
+          generic_name: p.generic_name,
+          category: { name: p.category_name || (p.category as { name?: string })?.name || "N/A" },
+          supplier: { company_name: p.company_name || (p.supplier as { company_name?: string })?.company_name || "N/A" },
+          product_prices: {
+            selling_price: p.selling_price || (p.product_prices as { selling_price?: number })?.selling_price || 0,
+            ecom_final_selling_price: p.selling_price || (p.product_prices as { ecom_final_selling_price?: number })?.ecom_final_selling_price || 0,
+            ecom_discount_percentage: (p.product_prices as { ecom_discount_percentage?: number })?.ecom_discount_percentage || null,
+            pack_quantity: (p.product_prices as { pack_quantity?: number })?.pack_quantity || 1,
+            ecom_pack_name: (p.product_prices as { ecom_pack_name?: { name: string } })?.ecom_pack_name || { name: "Pcs" },
+          },
+          product_images: (p.product_images as { path: string }[]) || [],
+          path: (p.path as string) || null,
+          stock_batches: p.stock
+            ? [{ balanced_quantity: p.stock as number }]
+            : (p.stock_batches as { balanced_quantity: number }[]) || [],
+        };
+      });
     },
-    enabled: !!query,
+    enabled: !!query && query.trim().length > 0,
     staleTime: 5 * 60 * 1000,
   });
 };
