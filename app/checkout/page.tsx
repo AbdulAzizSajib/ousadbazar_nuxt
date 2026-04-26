@@ -168,12 +168,29 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <Modal open={open} title={null} footer={null} centered width={500} onCancel={() => router.push("/")}>
-        <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-          <div className="w-20 h-20 rounded-full border-4 border-[#012068] flex items-center justify-center mb-6"><Icon icon="material-symbols:check" className="text-[#012068] w-14 h-14" /></div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Order is Confirmed!</h1>
-          {saleCode && <p className="text-gray-600 text-lg mb-4">Order ID: <span className="font-bold text-[#012068]">#{saleCode}</span></p>}
-          <button onClick={() => router.push("/order-tracking")} className="bg-[#012068] text-white font-semibold py-3 px-8 rounded-md transition-colors duration-200 uppercase tracking-wide">Check status your order</button>
+      <Modal open={open} title={null} footer={null} centered width={520} onCancel={() => router.push("/")}
+        styles={{ body: { padding: 0 } }}
+      >
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8fbff] via-white to-[#eef4ff] px-6 py-8 text-center">
+         
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#012068]/10 ring-8 ring-[#012068]/5">
+            <Icon icon="material-symbols:check-circle-rounded" className="h-14 w-14 text-[#012068]" />
+          </div>
+          <span className="inline-flex items-center rounded-full bg-[#012068]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#012068]">
+            Order Confirmed
+          </span>
+          <h1 className="mt-4 text-3xl font-bold text-gray-900">Your order has been placed</h1>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">
+            We have received your order successfully. Your order information has been sent to your number by SMS.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button onClick={() => router.push("/order-history")} className="inline-flex items-center justify-center rounded-xl bg-[#012068] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#012068]/20 transition-transform duration-200 hover:-translate-y-0.5">
+              Check your order history
+            </button>
+            <button onClick={() => router.push("/")} className="inline-flex items-center justify-center rounded-xl border border-[#012068]/20 bg-white px-6 py-3 text-sm font-semibold text-[#012068] transition-colors duration-200 hover:bg-[#012068]/5">
+              Continue Shopping
+            </button>
+          </div>
         </div>
       </Modal>
     </>
