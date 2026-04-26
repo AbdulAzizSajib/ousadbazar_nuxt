@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma } from "@/lib/config";
-import type { Order } from "@/types";
+import { useOrderHistory } from "@/lib/hooks/useOrders";
 
 export default function OrderHistoryPage() {
   const [phone, setPhone] = useState(() =>
@@ -13,27 +11,26 @@ export default function OrderHistoryPage() {
       ? localStorage.getItem("mobile")?.replace(/^88/, "") || ""
       : ""
   );
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [searched, setSearched] = useState(false);
+  const [submittedPhone, setSubmittedPhone] = useState(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("mobile")?.replace(/^88/, "") || ""
+      : ""
+  );
   const [expanded, setExpanded] = useState<Record<string | number, boolean>>({});
 
-  const fetchHistory = async () => {
+  const {
+    data: orders = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useOrderHistory(submittedPhone, !!submittedPhone);
+
+  const errorMsg = isError ? "Something went wrong. Please try again." : "";
+  const searched = !!submittedPhone;
+
+  const fetchHistory = () => {
     if (!phone.trim()) return;
-    try {
-      setErrorMsg("");
-      setIsLoading(true);
-      setSearched(true);
-      const fullPhone = phone.startsWith("88") ? phone.trim() : `88${phone.trim()}`;
-      const res = await axios.get(`${apiBasePharma}/order/history?phone=${fullPhone}`);
-      setOrders(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setOrders([]);
-      setErrorMsg("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    setSubmittedPhone(phone.trim());
   };
 
   const formatDate = (dateString: string) =>
@@ -45,11 +42,6 @@ export default function OrderHistoryPage() {
 
   const toggleExpand = (id: string | number) =>
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  useEffect(() => {
-    if (phone) fetchHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const totalSpent = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
 
@@ -202,7 +194,7 @@ export default function OrderHistoryPage() {
             </h3>
             <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">{errorMsg}</p>
             <button
-              onClick={() => setErrorMsg("")}
+              onClick={() => refetch()}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#012068] text-white text-sm font-semibold rounded-xl hover:bg-[#012068]/90 shadow-md shadow-[#012068]/20 active:scale-95 transition-all"
             >
               <Icon icon="mdi:refresh" className="w-4 h-4" />

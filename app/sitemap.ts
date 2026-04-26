@@ -39,8 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/ousadbazar/`, lastModified: now, changeFrequency: "daily", priority: 1.0 },
     { url: `${SITE_URL}/ousadbazar/all-medicines/`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/ousadbazar/search/`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${SITE_URL}/ousadbazar/login/`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${SITE_URL}/ousadbazar/register/`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/ousadbazar/cart/`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/ousadbazar/checkout/`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/ousadbazar/wishlist/`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },

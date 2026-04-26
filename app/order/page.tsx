@@ -1,44 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Pagination, Popconfirm } from "antd";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma, getTokenConfig } from "@/lib/config";
+import { useOrderList, useSuspendOrder } from "@/lib/hooks/useOrders";
 import { showNotification } from "@/lib/notification";
-import type { Order } from "@/types";
 
 export default function OrderPage() {
-  const [loading, setLoading] = useState(false);
-  const [orderData, setOrderData] = useState<Order[]>([]);
-  const [backupData, setBackupData] = useState<{ total?: number } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(15);
 
-  const getOrderInfo = async (page = currentPage) => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${apiBasePharma}/all-order-list-paginated?page=${page}&search=&paginate=${pageSize}`, getTokenConfig());
-      setOrderData(res?.data?.data || []);
-      setBackupData(res.data);
-    } catch (error) { console.error(error); }
-    finally { setLoading(false); }
-  };
+  const { data, isLoading: loading } = useOrderList(currentPage, pageSize);
+  const orderData = data?.data ?? [];
+  const totalCount = data?.total;
 
-  const handleCancel = async (id: number) => {
-    try {
-      const res = await axios.post(`${apiBasePharma}/sale/request-to-suspend/${id}`);
-      if (res.data) { showNotification("success", res.data.message); getOrderInfo(); }
-    } catch (error) { console.error(error); }
+  const { mutate: suspendOrder } = useSuspendOrder();
+
+  const handleCancel = (id: number) => {
+    suspendOrder(id, {
+      onSuccess: (resp) => {
+        if (resp?.message) showNotification("success", resp.message);
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return `${("0" + date.getDate()).slice(-2)}-${("0" + (date.getMonth() + 1)).slice(-2)}-${date.getFullYear()}`;
   };
-
-  useEffect(() => { getOrderInfo(); }, []);
 
   const statusLabel = (s: number | null) => s === 0 || s === null ? "Order Pending" : s === 1 ? "Order Confirmed" : "Order Cancelled";
   const statusClass = (s: number | null) => s === 0 || s === null ? "bg-yellow-50 text-yellow-700 border-yellow-200" : s === 1 ? "bg-green-50 text-green-700 border-green-200 cursor-not-allowed" : "bg-red-50 text-red-700 border-red-200 cursor-not-allowed";
@@ -113,7 +106,7 @@ export default function OrderPage() {
         </div>
 
         <div className="flex justify-start pt-4">
-          <Pagination current={currentPage} total={backupData?.total} showSizeChanger={false} pageSize={pageSize} onChange={(page) => { setCurrentPage(page); getOrderInfo(page); }} size="small" />
+          <Pagination current={currentPage} total={totalCount} showSizeChanger={false} pageSize={pageSize} onChange={(page) => setCurrentPage(page)} size="small" />
         </div>
       </div>
     </section>

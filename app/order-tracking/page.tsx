@@ -1,11 +1,9 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma } from "@/lib/config";
-import type { Order } from "@/types";
+import { useOrderTracking } from "@/lib/hooks/useOrders";
 
 export default function OrderTrackingPage() {
   return (
@@ -26,10 +24,16 @@ export default function OrderTrackingPage() {
 
 function OrderTrackingContent() {
   const searchParams = useSearchParams();
-  const [saleCode, setSaleCode] = useState(searchParams.get("sale_code") || "");
-  const [orderStatus, setOrderStatus] = useState<Order | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const initialSaleCode = searchParams.get("sale_code") || "";
+  const [saleCode, setSaleCode] = useState(initialSaleCode);
+  const [submittedCode, setSubmittedCode] = useState(initialSaleCode);
+
+  const {
+    data: orderStatus,
+    isLoading,
+    error,
+  } = useOrderTracking(submittedCode, !!submittedCode);
+  const errorMsg = error ? error.message : "";
 
   const steps = [
     { label: "Order Placed", icon: "mdi:receipt-text-outline" },
@@ -38,26 +42,9 @@ function OrderTrackingContent() {
     { label: "Delivered", icon: "mdi:home-check-outline" },
   ];
 
-  const trackOrder = async () => {
+  const trackOrder = () => {
     if (!saleCode.trim()) return;
-    try {
-      setErrorMsg("");
-      setIsLoading(true);
-      const res = await axios.get(
-        `${apiBasePharma}/order/order-tracking?sale_code=${saleCode.trim()}`
-      );
-      if (res.data?.status === "error") {
-        setOrderStatus(null);
-        setErrorMsg(res.data?.message || "Order not found.");
-      } else {
-        setOrderStatus(res.data);
-      }
-    } catch {
-      setOrderStatus(null);
-      setErrorMsg("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    setSubmittedCode(saleCode.trim());
   };
 
   const formatDate = (dateString: string) =>
@@ -107,11 +94,6 @@ function OrderTrackingContent() {
     ({ null: 0, 1: 1, 2: 2, 3: 3, 4: 2, 5: 2 } as Record<string, number>)[
       String(orderStatus?.delivery_status)
     ] ?? 0;
-
-  useEffect(() => {
-    if (saleCode) trackOrder();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const currentStep = getCurrentStep();
 
@@ -204,7 +186,7 @@ function OrderTrackingContent() {
             <button
               onClick={() => {
                 setSaleCode("");
-                setErrorMsg("");
+                setSubmittedCode("");
               }}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#012068] text-white text-sm font-semibold rounded-xl hover:bg-[#012068]/90 shadow-md shadow-[#012068]/20 active:scale-95 transition-all"
             >

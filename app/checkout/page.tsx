@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Modal } from "antd";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma, imgBasePharma, asset } from "@/lib/config";
+import { imgBasePharma, asset } from "@/lib/config";
 import { useCartStore } from "@/stores/cartStore";
+import { useBillingAddressByPhone, useCreateOrder } from "@/lib/hooks/useOrders";
 import { showNotification } from "@/lib/notification";
 import type { User } from "@/types";
 
@@ -18,7 +18,7 @@ export default function CheckoutPage() {
 
   const storedUser: User | null = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null;
 
-  const [isOrderLoading, setIsOrderLoading] = useState(false);
+  const { mutate: createOrder, isPending: isOrderLoading } = useCreateOrder();
   const [shippingCost] = useState(0);
   const [open, setOpen] = useState(false);
   const [saleCode, setSaleCode] = useState("");
@@ -46,49 +46,64 @@ export default function CheckoutPage() {
   const isValidMobile = validationError === "";
   const isCartEmpty = cartProduct.length === 0;
 
+  const { data: prefillAddress } = useBillingAddressByPhone(
+    isValidMobile ? address.mobile : ""
+  );
+
+  useEffect(() => {
+    if (!prefillAddress) return;
+    setAddress((prev) => ({
+      ...prev,
+      full_name: prev.full_name || prefillAddress.full_name || "",
+      address: prev.address || prefillAddress.address || "",
+      country_id: Number(prefillAddress.country_id) || prev.country_id,
+      city_id: Number(prefillAddress.city_id) || prev.city_id,
+      area_id: Number(prefillAddress.area_id) || prev.area_id,
+      note: prev.note || prefillAddress.notes || "",
+    }));
+  }, [prefillAddress]);
+
   const onlyNumber = (value: string) => {
     let v = value.replace(/\D/g, "");
     if (v.length > 11) v = v.slice(0, 11);
     setAddress((prev) => ({ ...prev, mobile: v }));
   };
 
-  const submitOrder = async () => {
-    setIsOrderLoading(true);
-    if (!address.full_name) { setIsOrderLoading(false); return showNotification("warning", "Name is required"); }
-    if (!address.mobile) { setIsOrderLoading(false); return showNotification("warning", "Mobile number is required"); }
-    if (!address.address) { setIsOrderLoading(false); return showNotification("warning", "Address is required"); }
+  const submitOrder = () => {
+    if (!address.full_name) return showNotification("warning", "Name is required");
+    if (!address.mobile) return showNotification("warning", "Mobile number is required");
+    if (!address.address) return showNotification("warning", "Address is required");
 
-    try {
-      const token = localStorage.getItem("token");
-      const payload = {
-        sale_products: cartProduct.map((item) => ({
-          product_id: item.id || "", product_name: item.name || "",
-          price: Number(item?.product_prices?.ecom_final_selling_price || item?.price || 0),
-          quantity: item.singleQty || 1,
-          pack_size_id: item?.product_prices?.pack_size_id || item?.pack_size?.id || "",
-          pack_size_quantity: Number(item?.product_prices?.pack_quantity || item?.pack_size?.quantity || 1),
-          total_quantity: Number(item?.quantity || 0), total: Number(item?.total_price || 0),
-        })),
-        sub_total: Number(totalPrice || 0),
-        total: Number(totalPrice || 0) + Number(shippingCost || 0),
-        phone: `88${address.mobile}`,
-        shipping_cost: Number(shippingCost || 0),
-        billing_address: address,
-        user: storedUser ? { id: storedUser.id } : { id: 1 },
-        payment_method_id: paymentMethodId,
-      };
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const res = await axios.post(`${apiBasePharma}/order/create-order`, payload, config);
-      setIsOrderLoading(false);
-      if (res.data?.message) {
-        setSaleCode(res.data?.saleCode || res.data?.sale_code || "");
-        resetCart();
-        setOpen(true);
-      }
-    } catch (error) {
-      console.error(error);
-      setIsOrderLoading(false);
-    }
+    const payload = {
+      sale_products: cartProduct.map((item) => ({
+        product_id: item.id || "", product_name: item.name || "",
+        price: Number(item?.product_prices?.ecom_final_selling_price || item?.price || 0),
+        quantity: item.singleQty || 1,
+        pack_size_id: item?.product_prices?.pack_size_id || item?.pack_size?.id || "",
+        pack_size_quantity: Number(item?.product_prices?.pack_quantity || item?.pack_size?.quantity || 1),
+        total_quantity: Number(item?.quantity || 0), total: Number(item?.total_price || 0),
+      })),
+      sub_total: Number(totalPrice || 0),
+      total: Number(totalPrice || 0) + Number(shippingCost || 0),
+      phone: `88${address.mobile}`,
+      shipping_cost: Number(shippingCost || 0),
+      billing_address: address,
+      user: storedUser ? { id: storedUser.id } : { id: 1 },
+      payment_method_id: paymentMethodId,
+    };
+
+    createOrder(payload, {
+      onSuccess: (data) => {
+        if (data?.message) {
+          setSaleCode(data?.saleCode || data?.sale_code || "");
+          resetCart();
+          setOpen(true);
+        }
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
   };
 
   return (

@@ -3,8 +3,7 @@
 import { useState, useRef } from "react";
 import { Modal } from "antd";
 import { Icon } from "@iconify/react";
-import axios from "axios";
-import { apiBasePharma, asset } from "@/lib/config";
+import { useSendOtp, useVerifyOtp } from "@/lib/hooks/useAuth";
 import { showNotification } from "@/lib/notification";
 
 interface LoginModalProps {
@@ -18,9 +17,11 @@ export default function LoginModal({ open, onClose, onLoginSuccess }: LoginModal
   const [otpSent, setOtpSent] = useState(false);
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const resendInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { mutate: sendOtp, isPending: isSendingOtp } = useSendOtp();
+  const { mutate: verifyOtp, isPending: isVerifyingOtp } = useVerifyOtp();
+  const isLoading = isSendingOtp || isVerifyingOtp;
 
   const startResendTimer = () => {
     setResendTimer(60);
@@ -70,47 +71,51 @@ export default function LoginModal({ open, onClose, onLoginSuccess }: LoginModal
     onClose();
   };
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = () => {
     if (!phone) return showNotification("warning", "Phone number required");
-    setIsLoading(true);
-    try {
-      const res = await axios.post(`${apiBasePharma}/send-otp`, { phone: `88${phone}` });
-      setIsLoading(false);
-      if (res?.data?.message) {
-        showNotification("success", res.data.message);
-        setOtpSent(true);
-        startResendTimer();
-      } else {
-        showNotification("error", "Failed to send OTP");
+    sendOtp(
+      { phone: `88${phone}` },
+      {
+        onSuccess: (data) => {
+          if (data?.message) {
+            showNotification("success", data.message);
+            setOtpSent(true);
+            startResendTimer();
+          } else {
+            showNotification("error", "Failed to send OTP");
+          }
+        },
+        onError: (error: unknown) => {
+          const axiosError = error as { response?: { data?: { message?: string } } };
+          showNotification("error", axiosError.response?.data?.message || "Network or server error");
+        },
       }
-    } catch (error: unknown) {
-      setIsLoading(false);
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      showNotification("error", axiosError.response?.data?.message || "Network or server error");
-    }
+    );
   };
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = () => {
     const otp = otpDigits.join("");
     if (otp.length < 6) return showNotification("warning", "Please enter the full 6-digit OTP");
-    setIsLoading(true);
-    try {
-      const res = await axios.post(`${apiBasePharma}/verify-otp`, { phone: `88${phone}`, otp });
-      setIsLoading(false);
-      if (res?.data?.status === "success") {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("mobile", res.data.mobile);
-        showNotification("success", res.data.message);
-        onLoginSuccess(res.data.token);
-        handleCancel();
-      } else {
-        showNotification("error", res?.data?.message || "Unexpected response");
+    verifyOtp(
+      { phone: `88${phone}`, otp },
+      {
+        onSuccess: (data) => {
+          if (data?.status === "success") {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("mobile", data.mobile);
+            showNotification("success", data.message);
+            onLoginSuccess(data.token);
+            handleCancel();
+          } else {
+            showNotification("error", data?.message || "Unexpected response");
+          }
+        },
+        onError: (error: unknown) => {
+          const axiosError = error as { response?: { data?: { message?: string } } };
+          showNotification("error", axiosError.response?.data?.message || "Network or server error");
+        },
       }
-    } catch (error: unknown) {
-      setIsLoading(false);
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      showNotification("error", axiosError.response?.data?.message || "Network or server error");
-    }
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {

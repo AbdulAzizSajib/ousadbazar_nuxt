@@ -77,7 +77,6 @@ export const useProductIds = (maxPages: number = 500) => {
   });
 };
 
-<<<<<<< HEAD
 export const useProductsByGeneric = (
   genericId: string | number | undefined | null,
   perPage: number = 10
@@ -110,9 +109,6 @@ export const useProductsByGeneric = (
 };
 
 export const useSearchProducts = (query: string, page: number = 1) => {
-=======
-export const useSearchProducts = (query: string) => {
->>>>>>> 9b016188ebd8d511209d1317753bf55179963ce5
   return useQuery({
     queryKey: ["searchProducts", query],
     queryFn: async () => {
